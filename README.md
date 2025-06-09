@@ -4,8 +4,7 @@ This project is a scaffold for building a custom indexer for the Aleo blockchain
 
 ## Features
 
--   **CLI-Driven Workflow**: `aleo-indexer dev` command for a seamless development experience.
--   **Vite-Powered Hot Reloading**: Instant updates when you change your config, schema, or indexing logic.
+-   **BUN Runtime**: JavaScript runtime & toolkit designed for speed, complete with a bundler.
 -   **Drizzle ORM**: Fully type-safe database interactions with PostgreSQL.
 -   **Drizzle Kit Migrations**: Manage your database schema changes professionally.
 -   **Hono + GraphQL Yoga**: A high-performance web server for your GraphQL API.
@@ -14,8 +13,8 @@ This project is a scaffold for building a custom indexer for the Aleo blockchain
 
 ## Prerequisites
 
--   Node.js (v18.14 or higher)
--   NPM
+-   Node.js (v22 or higher)
+-   Bun
 -   Docker (for running PostgreSQL easily)
 
 ## Setup
@@ -23,7 +22,7 @@ This project is a scaffold for building a custom indexer for the Aleo blockchain
 1.  **Clone the Repository and Install Dependencies:**
     ```bash
     # Clone or create the project files...
-    npm install
+    bun install
     ```
 
 2.  **Start a PostgreSQL Database:**
@@ -47,14 +46,14 @@ This project is a scaffold for building a custom indexer for the Aleo blockchain
     This command compares your schema (`src/database/schema.ts`) with the database and generates SQL migration files.
 
     ```bash
-    npm run db:generate
+    bun run db:generate
     ```
     After generation, you would typically run the migration, but for this simple setup, Drizzle can push the schema directly.
 
 5.  **Run the Development Server:**
     This starts the indexer and GraphQL server with hot-reloading.
     ```bash
-    npm run dev
+    bun run dev
     ```
 
 6.  **Access the GraphQL API:**
@@ -62,5 +61,5 @@ This project is a scaffold for building a custom indexer for the Aleo blockchain
 
 ## CLI Commands
 
--   `npm run dev`: Starts the development server with hot-reloading.
--   `npm run db:generate`: Generates SQL migration files based on your Drizzle schema.
+-   `bun run dev`: Starts the development server with hot-reloading.
+-   `bun run db:generate`: Generates SQL migration files based on your Drizzle schema.
