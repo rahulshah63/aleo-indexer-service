@@ -9,11 +9,11 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-    logger.info('Database pool connected');
+    logger.info({ service: 'db', msg: 'Database connection established' });
 });
 
 pool.on('error', (err) => {
-    logger.error({ err }, 'Unexpected database pool error');
+    logger.error({ service: 'db', msg: 'Database connection error', error: err });
     process.exit(-1);
 });
 

@@ -5,6 +5,7 @@ type Transaction {
   transactionId: String!
   blockHeight: Int!
   timestamp: String!
+  data: String!
 }
 
 type Query {

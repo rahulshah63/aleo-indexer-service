@@ -1,10 +1,9 @@
-import type { Prettify } from "@/types/utils.js";
 import pc from "picocolors";
 import { type DestinationStream, type LevelWithSilent, pino } from "pino";
 
-export type LogMode = "pretty" | "json";
-export type LogLevel = Prettify<LevelWithSilent>;
-export type Logger = ReturnType<typeof createLogger>;
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
 
 type Log = {
   // Pino properties
@@ -17,7 +16,11 @@ type Log = {
   error?: Error;
 };
 
-export function createLogger({
+export type LogMode = "pretty" | "json";
+export type LogLevel = Prettify<LevelWithSilent>;
+export type Logger = ReturnType<typeof createLogger>;
+
+function createLogger({
   level,
   mode = "pretty",
 }: { level: LogLevel; mode?: LogMode }) {
@@ -76,20 +79,6 @@ export function createLogger({
   };
 }
 
-export function createNoopLogger(
-  _args: { level?: LogLevel; mode?: LogMode } = {},
-) {
-  return {
-    fatal(_options: Omit<Log, "level" | "time">) {},
-    error(_options: Omit<Log, "level" | "time">) {},
-    warn(_options: Omit<Log, "level" | "time">) {},
-    info(_options: Omit<Log, "level" | "time">) {},
-    debug(_options: Omit<Log, "level" | "time">) {},
-    trace(_options: Omit<Log, "level" | "time">) {},
-    flush: () => new Promise<unknown>((resolve) => resolve(undefined)),
-  };
-}
-
 const levels = {
   60: { label: "FATAL", colorLabel: pc.bgRed("FATAL") },
   50: { label: "ERROR", colorLabel: pc.red("ERROR") },
@@ -139,3 +128,16 @@ const format = (log: Log) => {
   }
   return prettyLog.join("\n");
 };
+
+export const logger = createLogger({
+  level: "info",
+  mode: "pretty",
+});
+export const silentLogger = createLogger({
+  level: "silent",
+  mode: "pretty",
+});
+export const jsonLogger = createLogger({
+  level: "info",
+  mode: "json",
+});

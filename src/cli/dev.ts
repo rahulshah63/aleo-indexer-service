@@ -1,10 +1,9 @@
-import { createViteNodeServer } from "vite-node/server";
 import { createServer as createViteServer } from "vite";
 import { ViteNodeRunner } from "vite-node/client";
 import { logger } from "../internal/logger.js";
 
 export async function dev() {
-  logger.info("Starting development server...");
+  logger.info({service: 'dev', msg: "Starting development server..."});
 
   const server = await createViteServer({
     server: {
@@ -28,10 +27,10 @@ export async function dev() {
   // The `executeFile` will run our main logic, and Vite will handle re-execution on change.
   async function startApp() {
     try {
-      logger.info("Starting services...");
+      logger.info({ service: 'dev', msg: "Starting application..." });
       await node.executeFile("./src/server/index.ts");
-    } catch (error) {
-      logger.error({ err: error }, "Failed to start services");
+    } catch (error: Error | any) {
+      logger.error({msg: "Failed to start application", service: 'dev', error});
       process.exit(1);
     }
   }
@@ -39,7 +38,7 @@ export async function dev() {
   // Watch for changes and restart
   server.watcher.on("change", async (path) => {
     if (path.includes("src/") || path.includes("indexer.config.ts")) {
-      logger.info(`File changed: ${path}. Restarting...`);
+      logger.info({msg: `File changed: ${path}. Restarting...`, service: 'dev'});
       await node.executeFile("./src/server/index.ts");
     }
   });
