@@ -1,0 +1,12 @@
+type Transaction {
+  id: ID!
+  programId: String!
+  functionName: String!
+  transactionId: String!
+  blockHeight: Int!
+  timestamp: String!
+}
+
+type Query {
+  transactions: [Transaction]
+}
