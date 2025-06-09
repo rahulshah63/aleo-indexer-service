@@ -1,18 +1,13 @@
-import { createCommand } from "commander";
-import { dev } from "./dev.js";
+import { spawn, argv } from 'bun';
 
-export const program = createCommand("aleo-indexer")
-  .description("Indexer for the Aleo blockchain")
-  .version("1.0.0");
+const [command] = argv.slice(2); 
 
-program
-  .command("dev")
-  .description("Starts the development server with hot-reloading")
-  .action(dev);
-
-program
-  .command("start")
-  .description("Starts the production server")
-  .action(() => {
-    console.log("`start` command not yet implemented. Use `dev` for now.");
-  });
+if (command === 'dev') {
+  console.log('Starting dev server with Bun (with watch mode)...');
+  spawn(['bun', '--watch', 'src/server/index.ts']);
+} else if (command === 'start') {
+  console.log('Starting production server with Bun...');
+  spawn(['bun', 'run', 'src/server/index.ts']);
+} else {
+  console.log('Commands: dev | start');
+}
