@@ -1,8 +1,8 @@
 import { pgTable, varchar, text, integer, timestamp, jsonb, serial } from 'drizzle-orm/pg-core';
 
-export const transactions = pgTable('events', {
+export const transactions = pgTable('transactions', {
   id: serial('id').primaryKey(),
-  programId: text('program_id').notNull(),
+  programName: text('program_name').notNull(),
   functionName: text('function_name').notNull(),
   transactionId: text('transaction_id').notNull().unique(),
   blockHeight: text('block_height').notNull(),

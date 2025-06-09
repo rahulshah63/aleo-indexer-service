@@ -1,6 +1,6 @@
 type Transaction {
   id: ID!
-  programId: String!
+  programName: String!
   functionName: String!
   transactionId: String!
   blockHeight: Int!
