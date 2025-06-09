@@ -5,7 +5,7 @@ export interface ProgramFunctionConfig {
 }
 
 export interface ProgramConfig {
-  programId: string;
+  programName: string;
   functions: ProgramFunctionConfig[];
 }
 

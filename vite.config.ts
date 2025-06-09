@@ -3,6 +3,21 @@ import path from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  ssr: {
+    noExternal: ["pino-pretty"],
+  },
+  build: {
+    target: "node22",
+    rollupOptions: {
+      external: [
+        'async_hooks',
+        'path',
+        'fs',  
+        'url', 
+        'p-limit',
+      ],
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

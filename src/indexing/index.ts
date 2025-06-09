@@ -1,5 +1,5 @@
 import config from '../../indexer.config.js';
-import type { ProgramConfig } from '../../indexer.config.js';
+import { ProgramConfig } from '../config/program.js';
 import { logger } from '../internal/logger.js';
 import { db } from '../database/db.js';
 import { tables } from '../database/schema.js';
@@ -7,30 +7,30 @@ import { handleProgramEvents } from './handlers.js';
 import pLimit from 'p-limit';
 import { eq } from 'drizzle-orm';
 
-async function getLastIndexedPage(programId: string): Promise<number> {
+async function getLastIndexedPage(programName: string): Promise<number> {
   const result = await db.select()
     .from(tables.indexerState)
-    .where(eq(tables.indexerState.programId, programId)); 
+    .where(eq(tables.indexerState.programName, programName)); 
   return result[0]?.lastIndexedPage ?? 0;
 }
 
-async function updateLastIndexedPage(programId: string, page: number) {
+async function updateLastIndexedPage(programName: string, page: number) {
   await db.insert(tables.indexerState)
-    .values({ programId, lastIndexedPage: page })
-    .onConflictDoUpdate({ target: tables.indexerState.programId, set: { lastIndexedPage: page } });
+    .values({ programName, lastIndexedPage: page })
+    .onConflictDoUpdate({ target: tables.indexerState.programName, set: { lastIndexedPage: page } });
 }
 
-async function processProgram(program: ProgramConfig) { // Expect ProgramConfig type
+async function processProgram(program: ProgramConfig) {
   // Use program.id for state tracking
-  const lastPage = await getLastIndexedPage(program.id);
-  logger.info({service: 'indexer', msg: `Processing program ${program.id} starting from page ${lastPage}`});
+  const lastPage = await getLastIndexedPage(program.programName);
+  logger.info({service: 'indexer', msg: `Processing program ${program.programName} starting from page ${lastPage}`});
 
   // Call the generic handler for this program
   const nextPage = await handleProgramEvents(program, lastPage);
 
   if (nextPage > lastPage) {
-    await updateLastIndexedPage(program.id, nextPage); // Use program.id for state update
-    logger.info({ service: 'indexer', msg: `Program ${program.id} indexed up to page ${nextPage}` });
+    await updateLastIndexedPage(program.programName, nextPage); // Use program.id for state update
+    logger.info({ service: 'indexer', msg: `Program ${program.programName} indexed up to page ${nextPage}` });
   }
 }
 
@@ -40,7 +40,7 @@ export async function runIndexer() {
 
   const run = async () => {
     // Map over the programs defined in indexer.config.ts
-    const tasks = config.map(program =>
+    const tasks = config.programs.map(program =>
       limit(() => processProgram(program).catch(e => logger.error({ service: 'indexer', msg: `Error processing program ${program.id}`, error: e })))
     );
     await Promise.all(tasks);

@@ -12,7 +12,8 @@ export const transactions = pgTable('events', {
 
 export const indexerState = pgTable('indexer_state', {
     programName: varchar('program_name', { length: 255 }).primaryKey(),
-    lastIndexedPage: integer('last_indexed_page').notNull(),
+    lastIndexedPage: integer('last_indexed_page').notNull().default(0),
+    lastUpdated: timestamp('last_updated').notNull().defaultNow(),
 });
 
 // Export a handy object for relations or quick access

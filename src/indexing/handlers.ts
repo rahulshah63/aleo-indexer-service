@@ -1,19 +1,62 @@
-import { callRpc } from "../utils/rpc.js";
 import { db } from "../database/db.js";
-import { logger } from "../internal/logger.js";
+import { logger } from "../internal/logger.js"; 
 import { ProgramConfig, ProgramFunctionConfig } from "../config/program.js";
-import { tables } from "../database/schema.js"; // Ensure 'tables' is dynamically accessible or flexible
+import { tables } from "../database/schema.js";
+import asyncRetry from 'async-retry';
+import axios from 'axios'; 
 
-// A mock RPC call function
 async function callRpc<T>(method: string, params: unknown): Promise<T> {
-  const response = await fetch(process.env.RPC_URL!, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+  return asyncRetry(async bail => {
+    try {
+      const response = await axios.post(
+        process.env.RPC_URL!,
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: method, // The RPC method (e.g., "aleoTransactionsForProgram")
+          params: params, // The parameters for the RPC method
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = response.data;
+
+      if (data.error) {
+        if (data.error.code === -32602) {
+          bail(new Error(`RPC permanent error: ${data.error.message}`));
+        }
+        throw new Error(data.error.message);
+      }
+
+      return data.result;
+    } catch (error: Error | any) {
+      const errorMessage = error.response
+        ? `HTTP Error: ${error.response.status} - ${error.response.statusText}. RPC Response: ${JSON.stringify(error.response.data)}`
+        : error.message;
+
+      logger.warn({
+        service: "rpc",
+        msg: `RPC call '${method}' failed`,
+        error: errorMessage,
+      });
+      throw error; 
+    }
+  }, {
+    retries: 5, // Number of retries before giving up
+    minTimeout: 1000, // Initial delay before the first retry (1 second)
+    maxTimeout: 60000, // Maximum delay between retries (1 minute)
+    factor: 2, // Exponential backoff factor (delay doubles each time)
+    onRetry: (error: Error | any, attempt) => {
+      logger.info({
+        service: "rpc",
+        msg: `Retrying RPC call '${method}' (attempt ${attempt}) due to error: ${error.message}`,
+      });
+    }
   });
-  const data = await response.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.result;
 }
 
 // This function will now handle any program configuration
@@ -26,9 +69,9 @@ export async function handleProgramEvents(
 
   try {
     for (const funcConfig of programConfig.functions) {
-      // 1. Fetch raw transaction data dynamically
-      const transactions = await callRpc<any[]>("transactionsForProgram", {
-        programId: programConfig.id,
+      // 1. Fetch raw transaction data dynamically using the correct RPC method and programName
+      const transactions = await callRpc<any[]>("aleoTransactionsForProgram", {
+        programName: programConfig.programName,
         functionName: funcConfig.name,
         page: currentPage,
         maxTransactions: BATCH_SIZE,
@@ -42,28 +85,47 @@ export async function handleProgramEvents(
       // 2. Dynamic Parsing and Transformation
       const valuesToInsert = transactions.map((tx) => {
         const mappedData: { [key: string]: any } = {};
+        mappedData.transactionId = tx.transaction?.id;
+        mappedData.blockHeight = tx.block_height;
+
         for (const rpcField in funcConfig.fields) {
-          const dbField = funcConfig.fields[rpcField];
-          mappedData[dbField] = tx[rpcField];
+            const dbField = funcConfig.fields[rpcField];
+            // This part needs careful adaptation based on the actual RPC response structure
+            // For example, if rpcField is 'transaction.id' and dbField is 'id'
+            // you'd need logic to navigate the `tx` object:
+            // if (rpcField.includes('.')) {
+            //   const parts = rpcField.split('.');
+            //   let current = tx;
+            //   for (const part of parts) {
+            //     if (current && typeof current === 'object' && part in current) {
+            //       current = current[part];
+            //     } else {
+            //       current = undefined; // Path not found
+            //       break;
+            //     }
+            //   }
+            //   mappedData[dbField] = current;
+            // } else {
+            //   mappedData[dbField] = tx[rpcField];
+            // }
+
+            mappedData[dbField] = tx[rpcField]; // This line might need complex parsing
         }
-        // Add common fields not necessarily from RPC response directly, or adjust config
-        mappedData.programId = programConfig.id;
+
+
+        mappedData.programName = programConfig.programName;
         mappedData.functionName = funcConfig.name;
-        mappedData.timestamp = new Date(); // Or parse from tx if available
+        mappedData.timestamp = tx.finalizedAt ? new Date(parseInt(tx.finalizedAt) * 1000) : new Date(); // Convert Unix timestamp to Date
         return mappedData;
       });
 
       // 3. Dynamic Database Storage
-      // This is the trickiest part: `tables` needs to be dynamic.
-      // You'd need a way to get the correct Drizzle table based on `funcConfig.tableName`.
-      // This likely requires generating Drizzle schemas dynamically or having a comprehensive
-      // `tables` object that can be indexed by string.
-      const targetTable = (tables as any)[funcConfig.tableName]; // Type assertion for dynamic access
+      const targetTable = (tables as any)[funcConfig.tableName];
 
       if (!targetTable) {
         logger.error({
           service: "parser",
-          msg: `Database table '${funcConfig.tableName}' not found for program '${programConfig.id}' function '${funcConfig.name}'`,
+          msg: `Database table '${funcConfig.tableName}' not found for program '${programConfig.programName}' function '${funcConfig.name}'`,
         });
         continue;
       }
@@ -71,19 +133,18 @@ export async function handleProgramEvents(
       await db
         .insert(targetTable)
         .values(valuesToInsert)
-        .onConflictDoNothing({ target: (targetTable as any).id }); // Assuming 'id' is always the conflict target
+        .onConflictDoNothing({ target: (targetTable as any).id });
 
       logger.info({
         service: "parser",
-        msg: `Indexed ${valuesToInsert.length} transactions for program '${programConfig.id}' function '${funcConfig.name}' on page ${currentPage}`,
+        msg: `Indexed ${valuesToInsert.length} transactions for program '${programConfig.programName}' function '${funcConfig.name}' on page ${currentPage}`,
       });
     }
 
-    // Return the next page number for the entire program
     return currentPage + 1;
   } catch (error: Error | any) {
-    logger.error({service: "parser", msg: `Error processing program '${programConfig.id}' on page ${currentPage}`, error}
+    logger.error({service: "parser", msg: `Error processing program '${programConfig.programName}' on page ${currentPage}`, error}
     );
-    return currentPage; // Return current page to retry
+    return currentPage;
   }
 }
