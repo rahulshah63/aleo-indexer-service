@@ -2,13 +2,14 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { createYoga } from 'graphql-yoga';
 import { createSchema } from 'graphql-yoga';
-import { readFileSync } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs'; 
+import path from 'node:path';           
+import { fileURLToPath } from 'node:url';
 import { db } from '../database/db.js';
 import { tables } from '../database/schema.js';
 import { runIndexer } from '../indexing/index.js';
 import { logger } from '../internal/logger.js';
+import "dotenv/config"; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -3,27 +3,42 @@ import { logger } from "../internal/logger.js";
 import { ProgramConfig, ProgramFunctionConfig } from "../config/program.js";
 import { tables } from "../database/schema.js";
 import asyncRetry from 'async-retry';
-import axios from 'axios'; 
 
-async function callRpc<T>(method: string, params: unknown): Promise<T> {
+interface RpcResponse<T> {
+  jsonrpc: string;
+  id: number;
+  result?: T;
+  error?: {
+    code: number;
+    message: string;
+    data?: any;
+  };
+}
+
+async function callRpc<T>(method: string, params: unknown): Promise<RpcResponse<T>> {
   return asyncRetry(async bail => {
     try {
-      const response = await axios.post(
+      const response = await fetch(
         process.env.RPC_URL!,
         {
-          jsonrpc: "2.0",
-          id: 1,
-          method: method, // The RPC method (e.g., "aleoTransactionsForProgram")
-          params: params, // The parameters for the RPC method
-        },
-        {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: method,
+            params: params,
+          }),
         }
       );
 
-      const data = response.data;
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
 
       if (data.error) {
         if (data.error.code === -32602) {
@@ -33,7 +48,7 @@ async function callRpc<T>(method: string, params: unknown): Promise<T> {
       }
 
       return data.result;
-    } catch (error: Error | any) {
+    } catch (error: any) {
       const errorMessage = error.response
         ? `HTTP Error: ${error.response.status} - ${error.response.statusText}. RPC Response: ${JSON.stringify(error.response.data)}`
         : error.message;
@@ -46,10 +61,10 @@ async function callRpc<T>(method: string, params: unknown): Promise<T> {
       throw error; 
     }
   }, {
-    retries: 5, // Number of retries before giving up
-    minTimeout: 1000, // Initial delay before the first retry (1 second)
-    maxTimeout: 60000, // Maximum delay between retries (1 minute)
-    factor: 2, // Exponential backoff factor (delay doubles each time)
+    retries: 5,
+    minTimeout: 1000,
+    maxTimeout: 60000,
+    factor: 2,
     onRetry: (error: Error | any, attempt) => {
       logger.info({
         service: "rpc",

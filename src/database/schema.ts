@@ -1,4 +1,4 @@
-import { pgTable, varchar, text, integer, timestamp, jsonb, serial, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, text, integer, timestamp, jsonb, serial } from 'drizzle-orm/pg-core';
 
 export const transactions = pgTable('events', {
   id: serial('id').primaryKey(),
@@ -12,8 +12,8 @@ export const transactions = pgTable('events', {
 
 export const indexerState = pgTable('indexer_state', {
     programName: varchar('program_name', { length: 255 }).primaryKey(),
-    lastIndexedPage: integer('last_indexed_page').notNull().default(0),
-    lastUpdated: timestamp('last_updated').notNull().defaultNow(),
+    lastIndexedPage: integer('last_indexed_page').default(0).notNull(),
+    lastUpdated: timestamp('last_updated').defaultNow().notNull(),
 });
 
 // Export a handy object for relations or quick access

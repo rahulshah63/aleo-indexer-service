@@ -1,38 +1,43 @@
-import os from "node:os";
-import path from "node:path";
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite"; 
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
+  plugins: [
+    nodePolyfills(),
+  ],
   ssr: {
-    noExternal: ["pino-pretty"],
+    target: "node",
+    external: [
+      'async_hooks',
+      'p-limit', 
+    ],
   },
   build: {
-    target: "node22",
+    ssr: true,
     rollupOptions: {
       external: [
         'async_hooks',
-        'path',
-        'fs',  
-        'url', 
         'p-limit',
+        'node:async_hooks',
+        'node:path',
+        'node:fs',
+        'node:url',
+        'node:os',
       ],
-    },
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-  test: {
-    globalSetup: ["src/_test/globalSetup.ts"],
-    setupFiles: ["src/_test/setup.ts"],
-    poolOptions: {
-      threads: {
-        maxThreads: 4,
-        minThreads: 1,
+      output: {
+        format: "esm",
+        inlineDynamicImports: false,
       },
     },
-    sequence: { hooks: "stack" },
-    testTimeout: os.platform() === "win32" ? 30_000 : 10_000,
+  },
+  optimizeDeps: {
+    exclude: [
+      "p-limit",
+      "async_hooks",
+      "node:async_hooks",
+    ],
+    esbuildOptions: {
+      target: "node22",
+    },
   },
 });

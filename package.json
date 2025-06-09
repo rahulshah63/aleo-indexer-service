@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "tsx src/index.ts dev",
+    "db:migrate": "drizzle-kit migrate",
     "build": "tsc",
     "text": "vitest",
     "test:typecheck": "vitest --typecheck.only",
@@ -23,31 +24,30 @@
     "vite"
   ],
   "dependencies": {
-    "@commander-js/extra-typings": "^12.1.0",
-    "@hono/node-server": "^1.11.2",
+    "@commander-js/extra-typings": "^14.0.0",
+    "@hono/node-server": "^1.14.4",
     "async-retry": "^1.3.3",
-    "axios": "^1.7.2",
-    "commander": "^12.1.0",
-    "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.31.2",
+    "commander": "^14.0.0",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
     "graphql": "^16.8.1",
     "graphql-yoga": "^5.4.0",
     "hono": "^4.4.7",
     "http-terminator": "^3.2.0",
-    "p-limit": "^5.0.0",
+    "p-limit": "^6.2.0",
     "pg": "^8.12.0",
     "pino": "^9.2.0",
     "tsx": "^4.19.4",
-    "vite": "^5.3.1",
-    "vite-node": "^1.6.0",
-    "vitest": "^3.2.2"
+    "vite": "^6.3.5",
+    "vite-node": "^3.2.2"
   },
   "devDependencies": {
     "@types/async-retry": "^1.4.8",
-    "@types/node": "^20.14.2",
+    "@types/node": "^22.15.30",
     "@types/pg": "^8.11.6",
-    "drizzle-kit": "^0.22.7",
-    "typescript": "^5.4.5"
+    "drizzle-kit": "^0.31.1",
+    "typescript": "^5.4.5",
+    "vite-plugin-node-polyfills": "^0.23.0"
   },
   "engines": {
     "node": ">=18.14"
