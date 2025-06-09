@@ -1,5 +1,4 @@
-import { createConfig } from "./src/internal/types.js";
-import { defineProgram } from "./src/config/program.js";
+import { createConfig, defineProgram } from "./src/internal/types.js";
 
 // User-facing config file
 export default createConfig({

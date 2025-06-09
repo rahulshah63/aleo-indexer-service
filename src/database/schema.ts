@@ -4,7 +4,7 @@ export const transactions = pgTable('events', {
   id: serial('id').primaryKey(),
   programId: text('program_id').notNull(),
   functionName: text('function_name').notNull(),
-  transactionId: text('transaction_id').notNull().unique(), // Or composite unique
+  transactionId: text('transaction_id').notNull().unique(),
   blockHeight: text('block_height').notNull(),
   timestamp: timestamp('timestamp').notNull(),
   data: jsonb('data'), // Store all event-specific fields as JSON
@@ -16,5 +16,4 @@ export const indexerState = pgTable('indexer_state', {
     lastUpdated: timestamp('last_updated').defaultNow().notNull(),
 });
 
-// Export a handy object for relations or quick access
 export const tables = { transactions, indexerState };

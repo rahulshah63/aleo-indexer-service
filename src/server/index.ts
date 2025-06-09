@@ -40,10 +40,3 @@ export default {
   fetch: app.fetch,
   port: 4000,
 }
-
-// serve({
-  // fetch: app.fetch,
-  // port: 4000,
-// }, (info) => {
-//     logger.info({ service: 'server', msg: `🚀 GraphQL Server ready at http://localhost:${info.port}/graphql`});
-// });
