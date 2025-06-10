@@ -9,8 +9,14 @@ export interface ProgramFunctionConfig {
 export interface ProgramConfig {
   programName: string;
   functions: ProgramFunctionConfig[];
+  mappings?: { name: string; tableName: string }[]; // Optional mappings for additional tables
 }
 
 export function defineProgram(config: ProgramConfig): ProgramConfig {
   return config;
+}
+
+// Helper function for safe nested property access
+export function getNestedValue(obj: any, path: string): any {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
