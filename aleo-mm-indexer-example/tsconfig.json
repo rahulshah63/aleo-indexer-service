@@ -1,0 +1,22 @@
+// example/tsconfig.json
+
+{
+  "compilerOptions": {
+    "target": "ES2022",                     /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', 'ES2021', 'ES2022', 'ESNext'. */
+    "module": "Node16",                    /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', 'es2022', 'esnext', 'node16', 'nodenext'. */
+    "lib": ["ES2022"],                     /* Specify library files to be included in the compilation. */
+    "outDir": "./dist",                    /* Redirect output structure to the directory. */
+    "rootDir": "./",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+    "strict": true,                        /* Enable all strict type-checking options. */
+    "esModuleInterop": true,               /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "skipLibCheck": true,                  /* Skip type checking all .d.ts files. */
+    "forceConsistentCasingInFileNames": true, /* Ensure that casing is consistent in imported file names. */
+    "moduleResolution": "Node16",          /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
+    "resolveJsonModule": true,             /* Enable importing .json files. */
+    "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
+    "sourceMap": true,                     /* Generates corresponding '.map' file. */
+    "types": ["node"]                      /* Specify type package names to be included without being referenced in a source file. */
+  },
+  "include": ["**/*.ts"],                  /* Specify files to include in compilation. */
+  "exclude": ["node_modules", "dist", "drizzle/migrations"] /* Specify files to exclude from compilation. */
+}

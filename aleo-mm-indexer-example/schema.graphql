@@ -1,0 +1,71 @@
+
+# --- Base Types ---
+scalar BigInt  # Represents u64 and u128 Aleo types
+scalar DateTime # Represents timestamps
+scalar JSON    # Represents complex Aleo records, arrays, or generic JSON data
+
+type Query {
+    transactions(
+        limit: Int = 10,
+        offset: Int = 0,
+        programId: String,
+        functionName: String
+    ): [Transaction!]
+    transaction(id: String!): Transaction
+    token_registrations(limit: Int = 10, offset: Int = 0): [Token_registrations!]
+    public_transfers(limit: Int = 10, offset: Int = 0): [Public_transfers!]
+    token_data_map(limit: Int = 10, offset: Int = 0): [Token_data_map!]
+}
+
+
+# --- Base Schemas (Always Included) ---
+
+type IndexerState {
+    programName: String!
+    lastIndexedBlock: Int!
+    lastUpdated: DateTime!
+}
+
+type Transaction {
+    id: String!
+    programId: String!
+    functionName: String!
+    blockHeight: Int!
+    timestamp: DateTime!
+    raw: JSON # Store the raw transaction object
+}
+
+# --- Auto-Generated Schemas from indexer.config.ts ---
+
+type TokenMetadata {
+  symbol: String
+  decimals: Int
+  total_supply: BigInt
+  owner: String
+}
+
+type Token_registrations {
+  id: Int!
+  transaction: Transaction!
+  token_id: String
+  token_symbol: String
+  decimals: Int
+  supply_public: BigInt
+  callerAddress: String
+}
+
+type Public_transfers {
+  id: Int!
+  transaction: Transaction!
+  token_id: String
+  sender: String
+  receiver: String
+  amount: BigInt
+}
+
+type Token_data_map {
+  key: String!
+  value: TokenMetadata!
+  lastUpdatedBlock: Int!
+}
+
