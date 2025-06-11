@@ -1,7 +1,7 @@
 import { IndexerConfig } from 'aleo-indexer/src/utils/types.js';
 
 const indexerConfig: IndexerConfig = {
-  rpcUrl: process.env.ALEO_RPC_URL || 'https://rpc.testnetbeta.aleorpc.com',
+  rpcUrl: process.env.ALEO_RPC_URL || 'https://testnetbeta.aleorpc.com',
 
   // Define the Aleo programs and their associated functions/mappings to index.
   programs: [
