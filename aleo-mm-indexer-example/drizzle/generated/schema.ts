@@ -29,42 +29,28 @@ export const transactionsRelations = relations(transactions, ({ many }) => ({
 
 // --- Auto-Generated Tables from indexer.config.ts ---
 
-export const token_registrations = pgTable("token_registrations", {
+export const market_reserves = pgTable("market_reserves", {
   id: serial("id").primaryKey(),
   transactionId: varchar("transaction_id", { length: 255 }).notNull(),
   token_id: varchar("token_id", { length: 255 }),
-  token_symbol: varchar("token_symbol", { length: 255 }),
+  liquidity_cumulative_index: bigint("liquidity_cumulative_index", { mode: "number" }),
+  borrow_cumulative_index: bigint("borrow_cumulative_index", { mode: "number" }),
+  base_LTV_as_collateral: bigint("base_LTV_as_collateral", { mode: "number" }),
+  liquidation_threshold: bigint("liquidation_threshold", { mode: "number" }),
+  liquidation_bonus: bigint("liquidation_bonus", { mode: "number" }),
   decimals: smallint("decimals"),
-  supply_public: bigint("supply_public", { mode: "number" }),
+  optimal_utilization_rate: bigint("optimal_utilization_rate", { mode: "number" }),
+  base_borrow_rate: bigint("base_borrow_rate", { mode: "number" }),
+  is_freezed: boolean("is_freezed"),
+  is_active: boolean("is_active"),
+  borrow_threshold: bigint("borrow_threshold", { mode: "number" }),
   callerAddress: text("callerAddress"),
 });
 
-export const token_registrationsRelations = relations(token_registrations, ({ one }) => ({
+export const market_reservesRelations = relations(market_reserves, ({ one }) => ({
   transaction: one(transactions, {
-    fields: [token_registrations.transactionId],
+    fields: [market_reserves.transactionId],
     references: [transactions.id],
   }),
 }));
-
-export const public_transfers = pgTable("public_transfers", {
-  id: serial("id").primaryKey(),
-  transactionId: varchar("transaction_id", { length: 255 }).notNull(),
-  token_id: varchar("token_id", { length: 255 }),
-  sender: varchar("sender", { length: 63 }),
-  receiver: varchar("receiver", { length: 63 }),
-  amount: bigint("amount", { mode: "number" }),
-});
-
-export const public_transfersRelations = relations(public_transfers, ({ one }) => ({
-  transaction: one(transactions, {
-    fields: [public_transfers.transactionId],
-    references: [transactions.id],
-  }),
-}));
-
-export const token_data_map = pgTable("token_data_map", {
-  key: varchar("key", { length: 255 }).primaryKey(),
-  value: jsonb("value").notNull(),
-  lastUpdatedBlock: integer("last_updated_block").notNull(),
-});
 

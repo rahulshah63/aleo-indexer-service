@@ -1,5 +1,5 @@
 import type { Config } from 'drizzle-kit';
-import 'dotenv/config'; // Ensure .env is loaded for DATABASE_URL
+import 'dotenv/config';
 
 export default {
   schema: './drizzle/generated/schema.ts', // Path to your generated Drizzle schema

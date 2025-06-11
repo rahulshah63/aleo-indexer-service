@@ -5,6 +5,8 @@ import { createSchema } from 'graphql-yoga';
 import { readFileSync } from 'node:fs';
 import { eq } from 'drizzle-orm';
 import { logger } from '../utils/logger.js';
+import GraphQLJSON from 'graphql-type-json';
+import { GraphQLBigInt, GraphQLDateTime } from 'graphql-scalars';
 // Global variables to hold the dynamically loaded DB and schema
 let dbInstance = null;
 let generatedSchema = null;
@@ -50,10 +52,11 @@ export async function initializeGraphQLServer(db, schema, gqlSchemaPath) {
             ...createDynamicResolvers(generatedSchema),
         },
         // Add resolvers for custom scalars like BigInt, DateTime if needed (often handled by graphql-yoga defaults or libraries)
-        BigInt: String, // Treat BigInt as String in GraphQL for now
-        DateTime: String, // Treat Date/Timestamp as String in GraphQL for now
-        // JSON: GraphQLJSON, // If you define a JSON scalar, you'd need a package like graphql-type-json
+        BigInt: GraphQLBigInt,
+        DateTime: GraphQLDateTime,
+        JSON: GraphQLJSON, // If you define a JSON scalar, you'd need a package like graphql-type-json
     };
+    logger.info(`Generated GraphQL Resolvers: ${Object.keys(resolvers.Query).map(key => key).join(', ')}...`);
     const yoga = createYoga({
         schema: createSchema({
             typeDefs,
@@ -63,7 +66,6 @@ export async function initializeGraphQLServer(db, schema, gqlSchemaPath) {
     });
     //@ts-expect-error
     app.use('/graphql', (c) => yoga({ request: c.req.raw }));
-    logger.info(`🚀 GraphQL Server setup complete. Will start on http://localhost:4000/graphql when Hono serves.`);
     // Return the Hono app instance for serving
     return app;
 }

@@ -232,6 +232,13 @@ type Query {
                 const typeName = func.tableName.charAt(0).toUpperCase() + func.tableName.slice(1);
                 generatedGraphQLTypes.add(typeName);
                 schemaContent += `    ${func.tableName}(limit: Int = 10, offset: Int = 0): [${typeName}!]\n`;
+
+                // ADD THIS SECTION: Generate singular query for function-based tables
+                const singularFunctionName = func.tableName.endsWith('s') && func.tableName.length > 1
+                    ? func.tableName.slice(0, -1)
+                    : func.tableName;
+                // Assuming 'id' is always Int! for function-derived tables based on your Drizzle schema serial('id')
+                schemaContent += `    ${singularFunctionName}(id: Int!): ${typeName}\n`;
             }
         }
         if (program.mappings) {
@@ -242,7 +249,9 @@ type Query {
                 // Add a singular query for fetching a mapping by its key
                 const singularMappingName = mapping.tableName.endsWith('s') ? mapping.tableName.slice(0, -1) : mapping.tableName;
                 if (singularMappingName !== mapping.tableName) { // Only if it's a plural mapping table
-                    schemaContent += `    ${singularMappingName}(key: String!): ${typeName}\n`; // Key should be a String for GraphQL input
+                    // Determine key type dynamically for mappings
+                    const keyGraphQLType = getGraphQLType(mapping.key.aleoType);
+                    schemaContent += `    ${singularMappingName}(key: ${keyGraphQLType}!): ${typeName}\n`; // Key should be its Aleo type
                 }
             }
         }

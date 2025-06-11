@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import 'dotenv/config'; // Ensure .env is loaded for DATABASE_URL
+import 'dotenv/config'; 
 
 import * as schema from './generated/schema.js'; // Import all generated schema tables
 import * as relations from './generated/relations.js'; // Import relations
@@ -19,4 +19,4 @@ const pool = new Pool({
 export const db = drizzle(pool, { schema: { ...schema, ...relations } });
 
 // Re-export the schema for easier access in the indexer and server components
-export * from './generated/schema.js';
+export * as schema from './generated/schema.js';

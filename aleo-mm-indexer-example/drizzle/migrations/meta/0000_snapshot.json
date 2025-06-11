@@ -1,0 +1,204 @@
+{
+  "id": "ecf50c81-b819-4519-9e9e-45dd6299f9e5",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.indexer_state": {
+      "name": "indexer_state",
+      "schema": "",
+      "columns": {
+        "program_name": {
+          "name": "program_name",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "last_indexed_block": {
+          "name": "last_indexed_block",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "last_updated": {
+          "name": "last_updated",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.market_reserves": {
+      "name": "market_reserves",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_id": {
+          "name": "token_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidity_cumulative_index": {
+          "name": "liquidity_cumulative_index",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "borrow_cumulative_index": {
+          "name": "borrow_cumulative_index",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "base_LTV_as_collateral": {
+          "name": "base_LTV_as_collateral",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidation_threshold": {
+          "name": "liquidation_threshold",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidation_bonus": {
+          "name": "liquidation_bonus",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decimals": {
+          "name": "decimals",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "optimal_utilization_rate": {
+          "name": "optimal_utilization_rate",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "base_borrow_rate": {
+          "name": "base_borrow_rate",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_freezed": {
+          "name": "is_freezed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "borrow_threshold": {
+          "name": "borrow_threshold",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "callerAddress": {
+          "name": "callerAddress",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.transactions": {
+      "name": "transactions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "program_id": {
+          "name": "program_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "function_name": {
+          "name": "function_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "block_height": {
+          "name": "block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "raw": {
+          "name": "raw",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

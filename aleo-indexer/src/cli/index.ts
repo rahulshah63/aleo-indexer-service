@@ -109,17 +109,17 @@ program
         app = await initializeGraphQLServer(dbInstance, generatedSchema, graphQLSchemaPath);
     } catch (e) {
         logger.error('Failed to initialize GraphQL server:', e);
+        console.log(e);
         process.exit(1);
     }
     
-    logger.info('Starting GraphQL server...');
     const port = process.env.PORT || 4000;
     // Use Bun's native serve. 'fetch' method is expected by Bun.serve
     // @ts-ignore
     Bun.serve({
       fetch: app.fetch,
       port: port,
-    }, (info: any) => { // info callback gives port, etc.
+    }, (info: any) => {
       logger.info(`🚀 GraphQL Server ready at http://localhost:${info.port}/graphql`);
     });
 

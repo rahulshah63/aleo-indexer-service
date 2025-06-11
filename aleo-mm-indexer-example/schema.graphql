@@ -12,9 +12,8 @@ type Query {
         functionName: String
     ): [Transaction!]
     transaction(id: String!): Transaction
-    token_registrations(limit: Int = 10, offset: Int = 0): [Token_registrations!]
-    public_transfers(limit: Int = 10, offset: Int = 0): [Public_transfers!]
-    token_data_map(limit: Int = 10, offset: Int = 0): [Token_data_map!]
+    market_reserves(limit: Int = 10, offset: Int = 0): [Market_reserves!]
+    market_reserve(id: Int!): Market_reserves
 }
 
 
@@ -37,35 +36,21 @@ type Transaction {
 
 # --- Auto-Generated Schemas from indexer.config.ts ---
 
-type TokenMetadata {
-  symbol: String
-  decimals: Int
-  total_supply: BigInt
-  owner: String
-}
-
-type Token_registrations {
+type Market_reserves {
   id: Int!
   transaction: Transaction!
   token_id: String
-  token_symbol: String
+  liquidity_cumulative_index: BigInt
+  borrow_cumulative_index: BigInt
+  base_LTV_as_collateral: BigInt
+  liquidation_threshold: BigInt
+  liquidation_bonus: BigInt
   decimals: Int
-  supply_public: BigInt
+  optimal_utilization_rate: BigInt
+  base_borrow_rate: BigInt
+  is_freezed: Boolean
+  is_active: Boolean
+  borrow_threshold: BigInt
   callerAddress: String
-}
-
-type Public_transfers {
-  id: Int!
-  transaction: Transaction!
-  token_id: String
-  sender: String
-  receiver: String
-  amount: BigInt
-}
-
-type Token_data_map {
-  key: String!
-  value: TokenMetadata!
-  lastUpdatedBlock: Int!
 }
 
