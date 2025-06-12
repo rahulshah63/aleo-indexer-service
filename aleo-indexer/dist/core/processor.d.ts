@@ -13,11 +13,17 @@ interface MappingUpdateCandidate {
 /**
  * Handles the indexing of functions defined in a program configuration.
  * Fetches transactions, parses them, and inserts into the appropriate tables.
+ *
+ * This function iterates through each configured function name for RPC calls
+ * and collects all relevant transactions before processing them in batches.
+ * It ensures sequential processing by sorting transactions and relies on Drizzle's
+ * onConflictDoNothing for idempotency.
+ *
  * @param programConfig The configuration for the current Aleo program.
  * @param rpcUrl The RPC URL to use for API calls.
  * @param db The Drizzle DB instance.
  * @param schema The dynamically loaded Drizzle schema.
- * @param currentPage The page number to start fetching transactions from.
+ * @param currentPage The page number to start fetching transactions from (acts as a general progress marker).
  * @returns An object containing the next page number and a list of generated mapping update candidates.
  */
 export declare function handleProgramFunctions(programConfig: ProgramConfig, rpcUrl: string, db: DbInstance, schema: GeneratedSchema, currentPage: number): Promise<{

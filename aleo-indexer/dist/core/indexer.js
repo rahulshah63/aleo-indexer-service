@@ -51,7 +51,7 @@ rpcUrl, db, schema) {
     });
     // Handle functions (transactions)
     // handleProgramFunctions now returns both the next page and mapping update candidates
-    const { nextPage: nextFunctionPage, mappingUpdateCandidates } = await handleProgramFunctions(programConfig, rpcUrl, db, schema, lastIndexedBlock);
+    const { nextPage: nextFunctionPage, mappingUpdateCandidates } = await handleProgramFunctions(programConfig, rpcUrl, db, schema, 9);
     // Update last indexed block for functions based on actual transactions processed if possible,
     // otherwise, rely on the page number as a proxy for progress.
     // Note: `aleoTransactionsForProgram` takes a `page` parameter, so `nextFunctionPage` is the next page to fetch.

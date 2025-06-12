@@ -15,11 +15,9 @@
     "aleo",
     "indexer",
     "blockchain",
-    "drizzle",
-    "graphql",
-    "hono"
+    "verulend"
   ],
-  "author": "Your Name",
+  "author": "Rahul Shah",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.5.0",

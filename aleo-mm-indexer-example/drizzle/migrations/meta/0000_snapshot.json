@@ -1,5 +1,5 @@
 {
-  "id": "ecf50c81-b819-4519-9e9e-45dd6299f9e5",
+  "id": "d4baf25c-e0bd-42e2-8ac0-8a9db7469385",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -53,9 +53,99 @@
           "primaryKey": false,
           "notNull": true
         },
-        "token_id": {
-          "name": "token_id",
+        "token_id_cipherd": {
+          "name": "token_id_cipherd",
           "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidity_cumulative_index_cipherd": {
+          "name": "liquidity_cumulative_index_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "borrow_cumulative_index_cipherd": {
+          "name": "borrow_cumulative_index_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "base_LTV_as_collateral_cipherd": {
+          "name": "base_LTV_as_collateral_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidation_threshold_cipherd": {
+          "name": "liquidation_threshold_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidation_bonus_cipherd": {
+          "name": "liquidation_bonus_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decimals_cipherd": {
+          "name": "decimals_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "optimal_utilization_rate_cipherd": {
+          "name": "optimal_utilization_rate_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "base_borrow_rate_cipherd": {
+          "name": "base_borrow_rate_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_freezed_cipherd": {
+          "name": "is_freezed_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active_cipherd": {
+          "name": "is_active_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "borrow_threshold_cipherd": {
+          "name": "borrow_threshold_cipherd",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_address": {
+          "name": "user_address",
+          "type": "varchar(63)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_update_block_height": {
+          "name": "last_update_block_height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "liquidity_rate": {
+          "name": "liquidity_rate",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "borrow_rate": {
+          "name": "borrow_rate",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": false
         },
@@ -68,6 +158,18 @@
         "borrow_cumulative_index": {
           "name": "borrow_cumulative_index",
           "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_id": {
+          "name": "token_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decimals": {
+          "name": "decimals",
+          "type": "smallint",
           "primaryKey": false,
           "notNull": false
         },
@@ -89,12 +191,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "decimals": {
-          "name": "decimals",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": false
-        },
         "optimal_utilization_rate": {
           "name": "optimal_utilization_rate",
           "type": "bigint",
@@ -103,6 +199,12 @@
         },
         "base_borrow_rate": {
           "name": "base_borrow_rate",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "borrow_threshold": {
+          "name": "borrow_threshold",
           "type": "bigint",
           "primaryKey": false,
           "notNull": false
@@ -116,18 +218,6 @@
         "is_active": {
           "name": "is_active",
           "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "borrow_threshold": {
-          "name": "borrow_threshold",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "callerAddress": {
-          "name": "callerAddress",
-          "type": "text",
           "primaryKey": false,
           "notNull": false
         }

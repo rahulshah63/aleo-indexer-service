@@ -12,23 +12,41 @@ const indexerConfig: IndexerConfig = {
           name: 'add_reserve',
           tableName: 'market_reserves',
           inputs: [ 
-            { name: 'token_id', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[0].value' },
-            { name: 'liquidity_cumulative_index', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[1].value' },
-            { name: 'borrow_cumulative_index', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[2].value' },
-            { name: 'base_LTV_as_collateral', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[3].value' },
-            { name: 'liquidation_threshold', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[4].value' },
-            { name: 'liquidation_bonus', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[5].value' },
-            { name: 'decimals', aleoType: { kind: 'primitive', type: 'u8' }, rpcPath: 'transaction.execution.transitions[0].inputs[6].value' },
-            { name: 'optimal_utilization_rate', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[7].value' },
-            { name: 'base_borrow_rate', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[8].value' },
-            { name: 'is_freezed', aleoType: { kind: 'primitive', type: 'boolean' }, rpcPath: 'transaction.execution.transitions[0].inputs[9].value' },
-            { name: 'is_active', aleoType: { kind: 'primitive', type: 'boolean' }, rpcPath: 'transaction.execution.transitions[0].inputs[10].value' },
-            { name: 'borrow_threshold', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[11].value' },
+            { name: 'token_id_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[0].value' },
+            { name: 'liquidity_cumulative_index_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[1].value' },
+            { name: 'borrow_cumulative_index_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[2].value' },
+            { name: 'base_LTV_as_collateral_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[3].value' },
+            { name: 'liquidation_threshold_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[4].value' },
+            { name: 'liquidation_bonus_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[5].value' },
+            { name: 'decimals_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[6].value' },
+            { name: 'optimal_utilization_rate_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[7].value' },
+            { name: 'base_borrow_rate_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[8].value' },
+            { name: 'is_freezed_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[9].value' },
+            { name: 'is_active_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[10].value' },
+            { name: 'borrow_threshold_cipher', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[11].value' },
+          ],
+          outputs: [ 
+            { name: 'user_address', aleoType: { kind: 'primitive', type: 'address' }, parsedPath: "arguments[0]" },
+            { name: 'last_update_block_height', aleoType: { kind: 'primitive', type: 'u32' }, parsedPath: "arguments[2].last_update_block_height" },
+            { name: 'liquidity_rate', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[2].liquidity_rate" },
+            { name: 'borrow_rate', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[2].borrow_rate" },
+            { name: 'liquidity_cumulative_index', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[2].liquidity_cumulative_index" },
+            { name: 'borrow_cumulative_index', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[2].borrow_cumulative_index" },
+            { name: 'token_id', aleoType: { kind: 'primitive', type: 'field' }, parsedPath: "arguments[3].token_id" },
+            { name: 'decimals', aleoType: { kind: 'primitive', type: 'u8' }, parsedPath: "arguments[3].decimals" },
+            { name: 'base_LTV_as_collateral', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[3].base_LTV_as_collateral" },
+            { name: 'liquidation_threshold', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[3].liquidation_threshold" },
+            { name: 'liquidation_bonus', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[3].liquidation_bonus" },
+            { name: 'optimal_utilization_rate', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[3].optimal_utilization_rate" },
+            { name: 'base_borrow_rate', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[3].base_borrow_rate" },
+            { name: 'borrow_threshold', aleoType: { kind: 'primitive', type: 'u128' }, parsedPath: "arguments[3].borrow_threshold" },
+            { name: 'is_freezed', aleoType: { kind: 'primitive', type: 'boolean' }, parsedPath: "arguments[3].is_freezed" },
+            { name: 'is_active', aleoType: { kind: 'primitive', type: 'boolean' }, parsedPath: "arguments[3].is_active" },
           ],
           // Additional fields to extract from the raw transaction that are not directly function inputs
-          extract: {
-            callerAddress: 'transaction.execution.transitions[0].tpk', // Transaction public key of the caller
-          },
+          // extract: {
+          //   callerAddress: 'transaction.execution.transitions[0].tpk', // Transaction public key of the caller
+          // },
           // NEW: This function triggers updates for the 'token_data' mapping
           // triggersMappingUpdates: [
           //   {

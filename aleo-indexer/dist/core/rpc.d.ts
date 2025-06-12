@@ -10,7 +10,7 @@ export declare function callRpc<T>(rpcUrl: string, // Now takes rpcUrl as a para
 method: string, params: unknown): Promise<T>;
 export interface AleoTransaction {
     status: 'accepted' | 'rejected' | 'finalized';
-    type: string;
+    type: 'execute';
     transaction: {
         type: string;
         id: string;

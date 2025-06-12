@@ -24,6 +24,11 @@ export interface FunctionInput {
     aleoType: AleoValueType;
     rpcPath?: string;
 }
+export interface FunctionOutput {
+    name: string;
+    aleoType: AleoValueType;
+    parsedPath?: string;
+}
 /**
  * Defines how a specific function's execution should trigger an update
  * for a mapping. This allows dynamically discovering keys for mappings.
@@ -47,7 +52,8 @@ export interface MappingUpdateTrigger {
 export interface FunctionConfig {
     name: string;
     tableName: string;
-    inputs: FunctionInput[];
+    inputs?: FunctionInput[];
+    outputs?: FunctionOutput[];
     extract?: {
         [dbColumnName: string]: string;
     };
@@ -96,7 +102,7 @@ export declare function getNestedValue(obj: any, path: string): any;
  * @returns The parsed JSON object.
  * @throws {SyntaxError} If the resulting string is not valid JSON.
  */
-export declare function parseJSONLikeString(recordString: string): string;
+export declare function parseJSONLikeString(recordString: string): any;
 export interface DbInstance {
     insert: any;
     select: any;
@@ -108,3 +114,15 @@ export interface GeneratedSchema {
     indexerState: any;
     [key: string]: any;
 }
+/**
+ * Recursively parses a JSON object or array containing Leo-typed string literals.
+ *
+ * - If the input is an array, each element is parsed recursively.
+ * - If the input is an object, each property value is parsed recursively.
+ * - If the input is a string, it is parsed using `parseLeoLiteralString`.
+ * - Otherwise, the input is returned as-is.
+ *
+ * @param data - The JSON data to parse, which may contain Leo-typed string literals.
+ * @returns The parsed data with Leo-typed strings converted to their corresponding values.
+ */
+export declare function parseLeoTypedJSON(data: any): any;

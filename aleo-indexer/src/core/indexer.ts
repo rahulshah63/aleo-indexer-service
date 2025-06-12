@@ -68,7 +68,7 @@ async function processProgram(
     rpcUrl,
     db,
     schema,
-    lastIndexedBlock
+    9
   );
 
   // Update last indexed block for functions based on actual transactions processed if possible,

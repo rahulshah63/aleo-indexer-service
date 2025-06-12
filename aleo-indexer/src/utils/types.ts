@@ -1,5 +1,7 @@
 // aleo-indexer/src/utils/types.ts
 
+import { leo2js } from "../lib/aleo/index.js";
+
 // Define primitive Aleo types
 export type AleoPrimitiveType =
   | 'address'
@@ -28,6 +30,15 @@ export interface FunctionInput {
   rpcPath?: string;
 }
 
+// Configuration for a single output/field of a function or mapping
+export interface FunctionOutput {
+  name: string;
+  aleoType: AleoValueType;
+  // Optional: JSON path within the raw transaction where this input's value can be found.
+  // If not provided, the indexer will try to infer based on common Aleo transaction structures.
+  parsedPath?: string;
+}
+
 /**
  * Defines how a specific function's execution should trigger an update
  * for a mapping. This allows dynamically discovering keys for mappings.
@@ -53,7 +64,8 @@ export interface MappingUpdateTrigger {
 export interface FunctionConfig {
   name: string; // The name of the Aleo function (e.g., "transfer_public")
   tableName: string; // The SQL table name where events from this function will be stored (e.g., "public_transfers")
-  inputs: FunctionInput[]; // The inputs to extract from this function's transitions
+  inputs?: FunctionInput[]; // The inputs to extract from this function's transitions
+  outputs?: FunctionOutput[]; // The outputs to extract from this function's transitions
   // Optional: Additional fields to extract from the raw transaction that are not direct function inputs.
   // Key: desired DB column name, Value: JSON path within the raw transaction.
   extract?: { [dbColumnName: string]: string };
@@ -138,7 +150,7 @@ export function getNestedValue(obj: any, path: string): any {
  * @returns The parsed JSON object.
  * @throws {SyntaxError} If the resulting string is not valid JSON.
  */
-export function parseJSONLikeString(recordString: string): string {
+export function parseJSONLikeString(recordString: string) {
   const json = recordString.replace(/(['"])?([a-z0-9A-Z_.]+)(['"])?/g, '"$2" ');
   const correctJson = json;
   return JSON.parse(correctJson);
@@ -157,4 +169,70 @@ export interface GeneratedSchema {
   transactions: any;
   indexerState: any;
   [key: string]: any; // Allow dynamic access to other generated tables (functions, mappings)
+}
+
+/**
+ * Recursively parses a JSON object or array containing Leo-typed string literals.
+ *
+ * - If the input is an array, each element is parsed recursively.
+ * - If the input is an object, each property value is parsed recursively.
+ * - If the input is a string, it is parsed using `parseLeoLiteralString`.
+ * - Otherwise, the input is returned as-is.
+ *
+ * @param data - The JSON data to parse, which may contain Leo-typed string literals.
+ * @returns The parsed data with Leo-typed strings converted to their corresponding values.
+ */
+export function parseLeoTypedJSON(data: any): any {
+  if (Array.isArray(data)) {
+    return data.map(item => parseLeoTypedJSON(item));
+  }
+
+  if (typeof data === 'object' && data !== null) {
+    const result: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      result[key] = parseLeoTypedJSON(value);
+    }
+    return result;
+  }
+
+  if (typeof data === 'string') {
+    return parseLeoLiteralString(data);
+  }
+
+  return data;
+}
+
+type Leo2JsType = 'u8' | 'u16' | 'u32' | 'u64' | 'u128' | 'field' | 'address' | 'boolean';
+const supportedLeoType = ['u8', 'u16', 'u32', 'u64', 'u128', 'field', 'address', 'boolean'];
+
+/**
+ * Parses a Leo literal string and returns its corresponding JavaScript value.
+ *
+ * - If the input is 'true' or 'false', returns the boolean value.
+ * - If the input matches a numeric literal with a type suffix (e.g., '123u32', '456field'),
+ *   it uses the appropriate parser from the `leo2js` mapping to convert the value.
+ * - If the input does not match any known pattern, returns the raw string.
+ *
+ * @param value - The Leo literal string to parse.
+ * @returns The parsed JavaScript value (boolean, number, or string).
+ * @throws {Error} If the type suffix is unsupported.
+ */
+function parseLeoLiteralString(value: string) {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+
+  const match = value.split('.')[0].match(/^(\d+)(u\d+|field)$/);
+  if (match) {
+    const [_, numStr, type] = match;
+    // Type guard to ensure type is a valid Leo2JsType
+    if ((supportedLeoType).includes(type)) {
+      const parser = leo2js[type as Leo2JsType];
+      const data = parser(numStr)
+      return typeof data === "boolean" ? data : data.toString(); // Convert to string for db storage
+    } else {
+      throw new Error(`Unsupported Leo type: ${type}`);
+    }
+  }
+
+  return value; // Return raw string if not a typed literal
 }

@@ -27,7 +27,7 @@ program
   .command('dev')
   .description('Starts the development server with hot-reloading')
   .action(async () => {
-    logger.info('Starting Aleo Indexer in development mode...');
+    logger.info(`Starting Aleo Indexer in development mode... Executing from: ${__filename}`);
 
     // Load indexer.config.ts dynamically from the current working directory
     const configPath = resolve(process.cwd(), 'indexer.config.ts');
@@ -109,7 +109,6 @@ program
         app = await initializeGraphQLServer(dbInstance, generatedSchema, graphQLSchemaPath);
     } catch (e) {
         logger.error('Failed to initialize GraphQL server:', e);
-        console.log(e);
         process.exit(1);
     }
     

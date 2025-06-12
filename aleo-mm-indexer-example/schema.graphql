@@ -39,18 +39,33 @@ type Transaction {
 type Market_reserves {
   id: Int!
   transaction: Transaction!
-  token_id: String
+  token_id_cipherd: String
+  liquidity_cumulative_index_cipherd: String
+  borrow_cumulative_index_cipherd: String
+  base_LTV_as_collateral_cipherd: String
+  liquidation_threshold_cipherd: String
+  liquidation_bonus_cipherd: String
+  decimals_cipherd: String
+  optimal_utilization_rate_cipherd: String
+  base_borrow_rate_cipherd: String
+  is_freezed_cipherd: String
+  is_active_cipherd: String
+  borrow_threshold_cipherd: String
+  user_address: String
+  last_update_block_height: Int
+  liquidity_rate: BigInt
+  borrow_rate: BigInt
   liquidity_cumulative_index: BigInt
   borrow_cumulative_index: BigInt
+  token_id: String
+  decimals: Int
   base_LTV_as_collateral: BigInt
   liquidation_threshold: BigInt
   liquidation_bonus: BigInt
-  decimals: Int
   optimal_utilization_rate: BigInt
   base_borrow_rate: BigInt
+  borrow_threshold: BigInt
   is_freezed: Boolean
   is_active: Boolean
-  borrow_threshold: BigInt
-  callerAddress: String
 }
 

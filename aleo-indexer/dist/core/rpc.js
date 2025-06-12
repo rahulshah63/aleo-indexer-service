@@ -20,7 +20,7 @@ method, params) {
                 },
                 body: JSON.stringify({
                     jsonrpc: '2.0',
-                    id: 1, // You might want to make this dynamic if making multiple concurrent calls
+                    id: 1, // might want to make this dynamic if making multiple concurrent calls
                     method: method,
                     params: params,
                 }),

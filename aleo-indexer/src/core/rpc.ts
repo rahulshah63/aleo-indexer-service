@@ -38,7 +38,7 @@ export async function callRpc<T>(
           },
           body: JSON.stringify({
             jsonrpc: '2.0',
-            id: 1, // You might want to make this dynamic if making multiple concurrent calls
+            id: 1, // might want to make this dynamic if making multiple concurrent calls
             method: method,
             params: params,
           }),
@@ -51,7 +51,6 @@ export async function callRpc<T>(
         }
 
         const data: RpcResponse<T> = await response.json();
-
         if (data.error) {
           // Permanent errors (e.g., invalid parameters) should not be retried
           if (data.error.code === -32602) {
@@ -102,7 +101,7 @@ export async function callRpc<T>(
 // Define the structure of an Aleo transaction as returned by RPC
 export interface AleoTransaction {
   status: 'accepted' | 'rejected' | 'finalized';
-  type: string;
+  type: 'execute';
   transaction: {
     type: string;
     id: string; // transaction_id

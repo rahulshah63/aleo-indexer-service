@@ -126,9 +126,15 @@ export const transactionsRelations = relations(transactions, ({ many }) => ({
         schemaContent += `  transactionId: varchar("transaction_id", { length: 255 }).notNull(),\n`; // Link to raw transaction
 
         // Add columns for each input defined in the function config
-        for (const input of func.inputs) {
+        for (const input of func.inputs || []) {
           const drizzleType = getDrizzleType(input.aleoType, input.name);
           schemaContent += `  ${input.name}: ${drizzleType},\n`;
+        }
+
+        // Add columns for each output defined in the function config
+        for (const output of func.outputs || []) {
+          const drizzleType = getDrizzleType(output.aleoType, output.name);
+          schemaContent += `  ${output.name}: ${drizzleType},\n`;
         }
 
         // Add columns from 'extract' mapping
@@ -310,9 +316,13 @@ type Transaction {
                 schemaContent += `type ${typeName} {\n`;
                 schemaContent += `  id: Int!\n`;
                 schemaContent += `  transaction: Transaction!\n`; // Reference to the base transaction
-                 for (const input of func.inputs) {
+                for (const input of func.inputs || []) {
                     const graphQLType = getGraphQLType(input.aleoType);
                     schemaContent += `  ${input.name}: ${graphQLType}\n`;
+                }
+                for (const output of func.outputs || []) {
+                    const graphQLType = getGraphQLType(output.aleoType);
+                    schemaContent += `  ${output.name}: ${graphQLType}\n`;
                 }
                 // Add fields from 'extract'
                 for (const dbColumnName in func.extract) {
