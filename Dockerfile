@@ -6,6 +6,8 @@ COPY aleo-indexer ./aleo-indexer
 
 COPY aleo-mm-indexer-example ./aleo-mm-indexer-example
 
+COPY .env /app/aleo-mm-indexer-example/.env
+
 WORKDIR /app/aleo-indexer
 RUN bun install
 RUN bun run build
