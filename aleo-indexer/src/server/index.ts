@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import { createYoga } from 'graphql-yoga';
 import { createSchema } from 'graphql-yoga';
 import { readFileSync } from 'node:fs';
-import { eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { logger } from '../utils/logger.js';
 import { DbInstance, GeneratedSchema } from '../utils/types.js';
 import GraphQLJSON from 'graphql-type-json';
@@ -36,7 +36,22 @@ export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedS
   // Dynamically create resolvers based on the generated schema
   const resolvers = {
     Query: {
-      transactions: async (_: any, { limit = 10, offset = 0, programId, functionName }: { limit?: number, offset?: number, programId?: string, functionName?: string }) => {
+      transactions: async (_: any, {
+      limit = 10,
+      offset = 0,
+      programId,
+      functionName,
+      orderBy = 'blockHeight',
+      orderDirection = 'desc',
+    }: {
+      limit?: number;
+      offset?: number;
+      programId?: string;
+      functionName?: string;
+      orderBy?: 'blockHeight' | 'timestamp' | 'programId' | 'functionName';
+      orderDirection?: 'asc' | 'desc';
+    }
+  ) => {
         if (!generatedSchema || !dbInstance) throw new Error('Database or schema not initialized.');
         let query = dbInstance.select().from(generatedSchema.transactions);
 
@@ -46,8 +61,13 @@ export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedS
         if (functionName) {
           query = query.where(eq(generatedSchema.transactions.functionName, functionName));
         }
+        const orderColumn = generatedSchema.transactions[orderBy];
+        query = orderDirection === 'asc' 
+          ? query.orderBy(asc(orderColumn)) 
+          : query.orderBy(desc(orderColumn));
 
-        query = query.orderBy(generatedSchema.transactions.blockHeight).limit(limit).offset(offset);
+        query = query.limit(limit).offset(offset);
+
         return await query;
       },
       transaction: async (_: any, { id }: { id: string }) => {
@@ -87,27 +107,45 @@ export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedS
 function createDynamicResolvers(schema: GeneratedSchema) {
   const dynamicResolvers: Record<string, Function> = {};
 
-  // Iterate over all tables in the schema, excluding base ones
   for (const tableName in schema) {
     if (tableName === 'transactions' || tableName === 'indexerState') {
-      continue; // Skip base tables, handled explicitly
+      continue;
     }
 
     const table = schema[tableName];
-    if (typeof table === 'object' && table !== null && 'getSQL' in table) { // Check if it's a Drizzle table object
-      // Resolver for fetching all records from a function table
-      dynamicResolvers[tableName] = async (_: any, { limit = 10, offset = 0 }: { limit?: number, offset?: number }) => {
+    if (typeof table === 'object' && table !== null && 'getSQL' in table) {
+      // Resolver for fetching many records with ordering support
+      dynamicResolvers[tableName] = async (
+        _: any,
+        {
+          limit = 10,
+          offset = 0,
+          orderBy = 'lastUpdatedBlock',
+          orderDirection = 'desc',
+        }: {
+          limit?: number;
+          offset?: number;
+          orderBy?: string;
+          orderDirection?: 'asc' | 'desc';
+        }
+      ) => {
         if (!dbInstance) throw new Error('Database not initialized.');
-        return await dbInstance.select().from(table).limit(limit).offset(offset);
+
+        // Defensive check: if orderBy column does not exist in table, fallback to lastUpdatedBlock
+        const orderColumn = table[orderBy] ?? table['lastUpdatedBlock'];
+        const orderedQuery = orderDirection === 'asc'
+          ? dbInstance.select().from(table).orderBy(asc(orderColumn))
+          : dbInstance.select().from(table).orderBy(desc(orderColumn));
+
+        return orderedQuery.limit(limit).offset(offset);
       };
 
-      // If it's a mapping table, add a resolver for fetching by key
-      // Assuming mapping table names end with 's' and singular form is needed for 'by key' query
+      // Resolver for fetching single record by key (for mappings)
       const singularTableName = tableName.endsWith('s') ? tableName.slice(0, -1) : tableName;
-      if (singularTableName !== tableName) { // Only if it's a plural mapping table
+      if (singularTableName !== tableName) {
         dynamicResolvers[singularTableName] = async (_: any, { key }: { key: string }) => {
           if (!dbInstance) throw new Error('Database not initialized.');
-          const result = await dbInstance.select().from(table).where(eq(table.key, key)); // Assuming 'key' column
+          const result = await dbInstance.select().from(table).where(eq(table.key, key));
           return result[0];
         };
       }

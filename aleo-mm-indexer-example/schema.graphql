@@ -1,8 +1,8 @@
 
 # --- Base Types ---
-scalar BigInt  # Represents u64 and u128 Aleo types
-scalar DateTime # Represents timestamps
-scalar JSON    # Represents complex Aleo records, arrays, or generic JSON data
+scalar BigInt
+scalar DateTime
+scalar JSON
 
 type Query {
     transactions(
@@ -10,16 +10,28 @@ type Query {
         offset: Int = 0,
         programId: String,
         functionName: String
+        orderBy: TransactionOrderBy = blockHeight,
+        orderDirection: OrderDirection = desc
     ): [Transaction!]
     transaction(id: String!): Transaction
     market_reserves_historicals(limit: Int = 10, offset: Int = 0): [Market_reserves_historicals!]
     market_reserves_historical(id: Int!): Market_reserves_historicals
-    reserve_data_mapping(limit: Int = 10, offset: Int = 0): [Reserve_data_mapping!]
-    reserve_config_mapping(limit: Int = 10, offset: Int = 0): [Reserve_config_mapping!]
+    reserve_data_mapping(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: Reserve_data_mappingOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Reserve_data_mapping!]
+    reserve_config_mapping(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: Reserve_config_mappingOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Reserve_config_mapping!]
 }
 
 
-# --- Base Schemas (Always Included) ---
+# --- Base Schemas ---
 
 type IndexerState {
     programName: String!
@@ -33,7 +45,26 @@ type Transaction {
     functionName: String!
     blockHeight: Int!
     timestamp: DateTime!
-    raw: JSON # Store the raw transaction object
+    raw: JSON
+}
+
+enum OrderDirection {
+  asc
+  desc
+}
+
+enum TransactionOrderBy {
+  blockHeight
+  timestamp
+  programId
+  functionName
+}
+enum Reserve_data_mappingOrderBy {
+  lastUpdatedBlock
+}
+
+enum Reserve_config_mappingOrderBy {
+  lastUpdatedBlock
 }
 
 # --- Auto-Generated Schemas from indexer.config.ts ---

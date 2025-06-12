@@ -184,16 +184,12 @@ import { transactions, ${generatedTableNames.join(', ')} } from './schema';
     console.log(`✅ Drizzle schema generated at ${drizzleOutputPath}`);
     console.log(`✅ Drizzle relations generated at ${relationsOutputPath}`);
 }
-/**
- * Generates the GraphQL schema file (`schema.graphql`).
- * @param config The IndexerConfig.
- */
 async function generateGraphQLSchema(config) {
     let schemaContent = `
 # --- Base Types ---
-scalar BigInt  # Represents u64 and u128 Aleo types
-scalar DateTime # Represents timestamps
-scalar JSON    # Represents complex Aleo records, arrays, or generic JSON data
+scalar BigInt
+scalar DateTime
+scalar JSON
 
 type Query {
     transactions(
@@ -201,43 +197,52 @@ type Query {
         offset: Int = 0,
         programId: String,
         functionName: String
+        orderBy: TransactionOrderBy = blockHeight,
+        orderDirection: OrderDirection = desc
     ): [Transaction!]
     transaction(id: String!): Transaction
 `;
-    const generatedGraphQLTypes = new Set(); // To keep track of defined types and avoid duplicates
-    // Add top-level queries for each generated table (functions and mappings)
+    const generatedGraphQLTypes = new Set();
+    const generatedOrderEnums = new Set();
+    let enumDefs = "";
     for (const program of config.programs) {
         if (program.functions) {
             for (const func of program.functions) {
                 const typeName = func.tableName.charAt(0).toUpperCase() + func.tableName.slice(1);
                 generatedGraphQLTypes.add(typeName);
                 schemaContent += `    ${func.tableName}(limit: Int = 10, offset: Int = 0): [${typeName}!]\n`;
-                // ADD THIS SECTION: Generate singular query for function-based tables
-                const singularFunctionName = func.tableName.endsWith('s') && func.tableName.length > 1
-                    ? func.tableName.slice(0, -1)
-                    : func.tableName;
-                // Assuming 'id' is always Int! for function-derived tables based on your Drizzle schema serial('id')
-                schemaContent += `    ${singularFunctionName}(id: Int!): ${typeName}\n`;
+                const singular = func.tableName.endsWith('s') ? func.tableName.slice(0, -1) : func.tableName;
+                schemaContent += `    ${singular}(id: Int!): ${typeName}\n`;
             }
         }
         if (program.mappings) {
             for (const mapping of program.mappings) {
                 const typeName = mapping.tableName.charAt(0).toUpperCase() + mapping.tableName.slice(1);
                 generatedGraphQLTypes.add(typeName);
-                schemaContent += `    ${mapping.tableName}(limit: Int = 10, offset: Int = 0): [${typeName}!]\n`;
-                // Add a singular query for fetching a mapping by its key
-                const singularMappingName = mapping.tableName.endsWith('s') ? mapping.tableName.slice(0, -1) : mapping.tableName;
-                if (singularMappingName !== mapping.tableName) { // Only if it's a plural mapping table
-                    // Determine key type dynamically for mappings
-                    const keyGraphQLType = getGraphQLType(mapping.key.aleoType);
-                    schemaContent += `    ${singularMappingName}(key: ${keyGraphQLType}!): ${typeName}\n`; // Key should be its Aleo type
+                const plural = mapping.tableName;
+                const singular = plural.endsWith('s') ? plural.slice(0, -1) : plural;
+                const keyType = getGraphQLType(mapping.key.aleoType);
+                const orderEnumName = `${typeName}OrderBy`;
+                // Create enum once
+                if (!generatedOrderEnums.has(orderEnumName)) {
+                    enumDefs += `enum ${orderEnumName} {\n  lastUpdatedBlock\n}\n\n`;
+                    generatedOrderEnums.add(orderEnumName);
+                }
+                schemaContent += `    ${plural}(\n`;
+                schemaContent += `        limit: Int = 10,\n`;
+                schemaContent += `        offset: Int = 0,\n`;
+                schemaContent += `        orderBy: ${orderEnumName} = lastUpdatedBlock,\n`;
+                schemaContent += `        orderDirection: OrderDirection = desc\n`;
+                schemaContent += `    ): [${typeName}!]\n`;
+                if (singular !== plural) {
+                    schemaContent += `    ${singular}(key: ${keyType}!): ${typeName}\n`;
                 }
             }
         }
     }
     schemaContent += `}\n\n`;
     schemaContent += `
-# --- Base Schemas (Always Included) ---
+# --- Base Schemas ---
 
 type IndexerState {
     programName: String!
@@ -251,73 +256,84 @@ type Transaction {
     functionName: String!
     blockHeight: Int!
     timestamp: DateTime!
-    raw: JSON # Store the raw transaction object
-}\n\n`;
+    raw: JSON
+}
+
+enum OrderDirection {
+  asc
+  desc
+}
+
+enum TransactionOrderBy {
+  blockHeight
+  timestamp
+  programId
+  functionName
+}
+`;
+    schemaContent += enumDefs;
     schemaContent += `# --- Auto-Generated Schemas from indexer.config.ts ---\n\n`;
-    // Generate custom GraphQL types for structs (like UserData)
+    // Struct types from mapping values
     for (const program of config.programs) {
         if (program.mappings) {
             for (const mapping of program.mappings) {
-                if (mapping.value.kind === 'struct') {
-                    if (!generatedGraphQLTypes.has(mapping.value.structName)) { // Avoid duplicate type definitions
-                        generatedGraphQLTypes.add(mapping.value.structName);
-                        schemaContent += `type ${mapping.value.structName} {\n`;
-                        for (const fieldName in mapping.value.fields) {
-                            const fieldType = getGraphQLType(mapping.value.fields[fieldName]);
-                            schemaContent += `  ${fieldName}: ${fieldType}\n`;
-                        }
-                        schemaContent += `}\n\n`;
+                if (mapping.value.kind === 'struct' && !generatedGraphQLTypes.has(mapping.value.structName)) {
+                    generatedGraphQLTypes.add(mapping.value.structName);
+                    schemaContent += `type ${mapping.value.structName} {\n`;
+                    for (const fieldName in mapping.value.fields) {
+                        const fieldType = getGraphQLType(mapping.value.fields[fieldName]);
+                        schemaContent += `  ${fieldName}: ${fieldType}\n`;
                     }
+                    schemaContent += `}\n\n`;
                 }
             }
         }
     }
-    // Generate types for functions (event data)
+    // Function types
     for (const program of config.programs) {
         if (program.functions) {
             for (const func of program.functions) {
                 const typeName = func.tableName.charAt(0).toUpperCase() + func.tableName.slice(1);
-                if (!generatedGraphQLTypes.has(typeName)) { // Should already be added by queries, but good to check
+                if (!generatedGraphQLTypes.has(typeName)) {
                     generatedGraphQLTypes.add(typeName);
                 }
                 schemaContent += `type ${typeName} {\n`;
                 schemaContent += `  id: Int!\n`;
-                schemaContent += `  transaction: Transaction!\n`; // Reference to the base transaction
+                schemaContent += `  transaction: Transaction!\n`;
                 for (const input of func.inputs || []) {
-                    const graphQLType = getGraphQLType(input.aleoType);
-                    schemaContent += `  ${input.name}: ${graphQLType}\n`;
+                    const gqlType = getGraphQLType(input.aleoType);
+                    schemaContent += `  ${input.name}: ${gqlType}\n`;
                 }
                 for (const output of func.outputs || []) {
-                    const graphQLType = getGraphQLType(output.aleoType);
-                    schemaContent += `  ${output.name}: ${graphQLType}\n`;
+                    const gqlType = getGraphQLType(output.aleoType);
+                    schemaContent += `  ${output.name}: ${gqlType}\n`;
                 }
-                // Add fields from 'extract'
-                for (const dbColumnName in func.extract) {
-                    schemaContent += `  ${dbColumnName}: String\n`; // Assume string for extracted raw values
+                for (const column in func.extract) {
+                    schemaContent += `  ${column}: String\n`;
                 }
                 schemaContent += `}\n\n`;
             }
         }
     }
-    // Generate types for mappings
+    // Mapping types
     for (const program of config.programs) {
         if (program.mappings) {
             for (const mapping of program.mappings) {
                 const typeName = mapping.tableName.charAt(0).toUpperCase() + mapping.tableName.slice(1);
-                if (!generatedGraphQLTypes.has(typeName)) { // Should already be added by queries
+                if (!generatedGraphQLTypes.has(typeName)) {
                     generatedGraphQLTypes.add(typeName);
                 }
                 schemaContent += `type ${typeName} {\n`;
-                const keyGraphQLType = getGraphQLType(mapping.key.aleoType);
-                schemaContent += `  key: ${keyGraphQLType}!\n`;
-                const valueGraphQLType = getGraphQLType(mapping.value);
-                schemaContent += `  value: ${valueGraphQLType}!\n`; // Can be JSON or a specific struct type
+                const keyGQL = getGraphQLType(mapping.key.aleoType);
+                schemaContent += `  key: ${keyGQL}!\n`;
+                const valueGQL = getGraphQLType(mapping.value);
+                schemaContent += `  value: ${valueGQL}!\n`;
                 schemaContent += `  lastUpdatedBlock: Int!\n`;
                 schemaContent += `}\n\n`;
             }
         }
     }
-    const outputPath = path.join(process.cwd(), 'schema.graphql'); // Output directly in the example directory
+    const outputPath = path.join(process.cwd(), 'schema.graphql');
     await fs.writeFile(outputPath, schemaContent);
     console.log(`✅ GraphQL schema generated at ${outputPath}`);
 }

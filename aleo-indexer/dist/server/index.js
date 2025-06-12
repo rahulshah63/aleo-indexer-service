@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { createYoga } from 'graphql-yoga';
 import { createSchema } from 'graphql-yoga';
 import { readFileSync } from 'node:fs';
-import { eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { logger } from '../utils/logger.js';
 import GraphQLJSON from 'graphql-type-json';
 import { GraphQLBigInt, GraphQLDateTime } from 'graphql-scalars';
@@ -29,7 +29,7 @@ export async function initializeGraphQLServer(db, schema, gqlSchemaPath) {
     // Dynamically create resolvers based on the generated schema
     const resolvers = {
         Query: {
-            transactions: async (_, { limit = 10, offset = 0, programId, functionName }) => {
+            transactions: async (_, { limit = 10, offset = 0, programId, functionName, orderBy = 'blockHeight', orderDirection = 'desc', }) => {
                 if (!generatedSchema || !dbInstance)
                     throw new Error('Database or schema not initialized.');
                 let query = dbInstance.select().from(generatedSchema.transactions);
@@ -39,7 +39,11 @@ export async function initializeGraphQLServer(db, schema, gqlSchemaPath) {
                 if (functionName) {
                     query = query.where(eq(generatedSchema.transactions.functionName, functionName));
                 }
-                query = query.orderBy(generatedSchema.transactions.blockHeight).limit(limit).offset(offset);
+                const orderColumn = generatedSchema.transactions[orderBy];
+                query = orderDirection === 'asc'
+                    ? query.orderBy(asc(orderColumn))
+                    : query.orderBy(desc(orderColumn));
+                query = query.limit(limit).offset(offset);
                 return await query;
             },
             transaction: async (_, { id }) => {
@@ -76,27 +80,30 @@ export async function initializeGraphQLServer(db, schema, gqlSchemaPath) {
  */
 function createDynamicResolvers(schema) {
     const dynamicResolvers = {};
-    // Iterate over all tables in the schema, excluding base ones
     for (const tableName in schema) {
         if (tableName === 'transactions' || tableName === 'indexerState') {
-            continue; // Skip base tables, handled explicitly
+            continue;
         }
         const table = schema[tableName];
-        if (typeof table === 'object' && table !== null && 'getSQL' in table) { // Check if it's a Drizzle table object
-            // Resolver for fetching all records from a function table
-            dynamicResolvers[tableName] = async (_, { limit = 10, offset = 0 }) => {
+        if (typeof table === 'object' && table !== null && 'getSQL' in table) {
+            // Resolver for fetching many records with ordering support
+            dynamicResolvers[tableName] = async (_, { limit = 10, offset = 0, orderBy = 'lastUpdatedBlock', orderDirection = 'desc', }) => {
                 if (!dbInstance)
                     throw new Error('Database not initialized.');
-                return await dbInstance.select().from(table).limit(limit).offset(offset);
+                // Defensive check: if orderBy column does not exist in table, fallback to lastUpdatedBlock
+                const orderColumn = table[orderBy] ?? table['lastUpdatedBlock'];
+                const orderedQuery = orderDirection === 'asc'
+                    ? dbInstance.select().from(table).orderBy(asc(orderColumn))
+                    : dbInstance.select().from(table).orderBy(desc(orderColumn));
+                return orderedQuery.limit(limit).offset(offset);
             };
-            // If it's a mapping table, add a resolver for fetching by key
-            // Assuming mapping table names end with 's' and singular form is needed for 'by key' query
+            // Resolver for fetching single record by key (for mappings)
             const singularTableName = tableName.endsWith('s') ? tableName.slice(0, -1) : tableName;
-            if (singularTableName !== tableName) { // Only if it's a plural mapping table
+            if (singularTableName !== tableName) {
                 dynamicResolvers[singularTableName] = async (_, { key }) => {
                     if (!dbInstance)
                         throw new Error('Database not initialized.');
-                    const result = await dbInstance.select().from(table).where(eq(table.key, key)); // Assuming 'key' column
+                    const result = await dbInstance.select().from(table).where(eq(table.key, key));
                     return result[0];
                 };
             }
