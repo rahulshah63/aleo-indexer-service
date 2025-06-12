@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist tsconfig.tsbuildinfo && bun run tsc && sed -i '' -e '1s/^/#!\\/usr\\/bin\\/env bun\\n/' dist/cli/index.js",
+    "build": "rm -rf dist tsconfig.tsbuildinfo && bun run tsc && sed -i.bak '1s|^|#!/usr/bin/env bun\\n|' dist/cli/index.js && rm dist/cli/index.js.bak",
     "dev": "bun --inspect-brk run dist/cli/index.js dev",
     "start": "bun run dist/cli/index.js start"
   },
