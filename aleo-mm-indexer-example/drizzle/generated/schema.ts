@@ -75,3 +75,9 @@ export const reserve_data_mapping = pgTable("reserve_data_mapping", {
   lastUpdatedBlock: integer("last_updated_block").notNull(),
 });
 
+export const reserve_config_mapping = pgTable("reserve_config_mapping", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: jsonb("value").notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+

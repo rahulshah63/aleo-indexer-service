@@ -2,8 +2,8 @@
 import { logger } from '../utils/logger.js';
 import { getNestedValue, parseJSONLikeString, parseLeoTypedJSON, JS2Leo } from '../utils/types.js';
 import { callRpc } from './rpc.js';
-const BATCH_SIZE = 1; // Number of transactions to fetch per RPC call
-const MAX_PAGES_PER_FUNCTION_CYCLE = 1; // Limit pages fetched per function per cycle to avoid huge batches
+const BATCH_SIZE = 10; // Number of transactions to fetch per RPC call
+const MAX_PAGES_PER_FUNCTION_CYCLE = 5; // Limit pages fetched per function per cycle to avoid huge batches
 /**
  * Parses and transforms an Aleo transaction based on the function configuration.
  * @param tx The raw Aleo transaction object.

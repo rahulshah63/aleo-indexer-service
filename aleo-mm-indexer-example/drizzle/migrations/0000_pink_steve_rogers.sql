@@ -37,6 +37,12 @@ CREATE TABLE "market_reserves_historicals" (
 	"is_active" boolean
 );
 --> statement-breakpoint
+CREATE TABLE "reserve_config_mapping" (
+	"key" varchar(255) PRIMARY KEY NOT NULL,
+	"value" jsonb NOT NULL,
+	"last_updated_block" integer NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "reserve_data_mapping" (
 	"key" varchar(255) PRIMARY KEY NOT NULL,
 	"value" jsonb NOT NULL,

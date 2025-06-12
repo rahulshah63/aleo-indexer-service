@@ -16,8 +16,8 @@ interface MappingUpdateCandidate {
   blockHeight: number; // The block height at which this update was observed
 }
 
-const BATCH_SIZE = 1; // Number of transactions to fetch per RPC call
-const MAX_PAGES_PER_FUNCTION_CYCLE = 1; // Limit pages fetched per function per cycle to avoid huge batches
+const BATCH_SIZE = 10; // Number of transactions to fetch per RPC call
+const MAX_PAGES_PER_FUNCTION_CYCLE = 5; // Limit pages fetched per function per cycle to avoid huge batches
 
 /**
  * Parses and transforms an Aleo transaction based on the function configuration.

@@ -47,7 +47,6 @@ const indexerConfig: IndexerConfig = {
           // extract: {
           //   callerAddress: 'transaction.execution.transitions[0].tpk', // Transaction public key of the caller
           // },
-          // NEW: This function triggers updates for the 'token_data' mapping
           triggersMappingUpdates: [
             {
               mappingName: 'reserve_data',
@@ -78,36 +77,35 @@ const indexerConfig: IndexerConfig = {
             },
           },
           rpcValuePath: 'value_id',
+        },
+        {
+          name: 'reserve_config',
+          tableName: 'reserve_config_mapping', // Corresponding SQL table name for this mapping's state
+          key: {
+            name: 'token_id', // Name of the key field
+            aleoType: { kind: 'primitive', type: 'field' }, // Aleo type of the key
+            rpcPath: 'key_id',
+          },
+          value: { // Define the value structure of the mapping
+            kind: 'struct', // Indicates a custom struct type
+            structName: 'ReserveConfig', // The name of the struct (will be used for GraphQL type generation)
+            fields: { // Fields within the struct
+              token_id: { kind: 'primitive', type: 'field' },
+              decimals: { kind: 'primitive', type: 'u8' },
+              base_LTV_as_collateral: { kind: 'primitive', type: 'u128' },
+              liquidation_threshold: { kind: 'primitive', type: 'u128' },
+              liquidation_bonus: { kind: 'primitive', type: 'u128' },
+              optimal_utilization_rate: { kind: 'primitive', type: 'u128' },
+              base_borrow_rate: { kind: 'primitive', type: 'u128' },
+              borrow_threshold: { kind: 'primitive', type: 'u128' },
+              is_freezed: { kind: 'primitive', type: 'boolean' },
+              is_active: { kind: 'primitive', type: 'boolean' },
+            },
+          },
+          rpcValuePath: 'value_id',
         }
       ],
     },
-    // {
-    //   programId: 'token_registry.aleo',
-    //   functions: [
-    //     {
-    //       name: 'register_token', // Name of the Aleo function
-    //       tableName: 'token_registrations', // Corresponding SQL table name for this function's events
-    //       inputs: [ // Define the inputs to extract from this function's transitions
-    //         { name: 'token_id', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[0].value' },
-    //         { name: 'token_symbol', aleoType: { kind: 'primitive', type: 'field' }, rpcPath: 'transaction.execution.transitions[0].inputs[1].value' },
-    //         { name: 'decimals', aleoType: { kind: 'primitive', type: 'u8' }, rpcPath: 'transaction.execution.transitions[0].inputs[2].value' },
-    //         { name: 'supply_public', aleoType: { kind: 'primitive', type: 'u128' }, rpcPath: 'transaction.execution.transitions[0].inputs[3].value' },
-    //       ],
-    //       // Additional fields to extract from the raw transaction that are not directly function inputs
-    //       extract: {
-    //         callerAddress: 'transaction.execution.transitions[0].tpk', // Transaction public key of the caller
-    //       },
-    //       // NEW: This function triggers updates for the 'token_data' mapping
-    //       triggersMappingUpdates: [
-    //         {
-    //           mappingName: 'token_data',
-    //           keySource: 'token_id', // The 'token_id' extracted from this function's inputs is the mapping key
-    //           // valueSource is not needed here as token_data mapping values are complex and best fetched via getMappingValue
-    //         }
-    //       ]
-    //     },
-    //   ],
-    // },
     // Add more programs if you want to index multiple Aleo programs
   ],
 };

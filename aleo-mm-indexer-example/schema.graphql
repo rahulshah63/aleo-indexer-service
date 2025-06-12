@@ -15,6 +15,7 @@ type Query {
     market_reserves_historicals(limit: Int = 10, offset: Int = 0): [Market_reserves_historicals!]
     market_reserves_historical(id: Int!): Market_reserves_historicals
     reserve_data_mapping(limit: Int = 10, offset: Int = 0): [Reserve_data_mapping!]
+    reserve_config_mapping(limit: Int = 10, offset: Int = 0): [Reserve_config_mapping!]
 }
 
 
@@ -43,6 +44,19 @@ type ReserveData {
   borrow_rate: BigInt
   liquidity_cumulative_index: BigInt
   borrow_cumulative_index: BigInt
+}
+
+type ReserveConfig {
+  token_id: String
+  decimals: Int
+  base_LTV_as_collateral: BigInt
+  liquidation_threshold: BigInt
+  liquidation_bonus: BigInt
+  optimal_utilization_rate: BigInt
+  base_borrow_rate: BigInt
+  borrow_threshold: BigInt
+  is_freezed: Boolean
+  is_active: Boolean
 }
 
 type Market_reserves_historicals {
@@ -81,6 +95,12 @@ type Market_reserves_historicals {
 type Reserve_data_mapping {
   key: String!
   value: ReserveData!
+  lastUpdatedBlock: Int!
+}
+
+type Reserve_config_mapping {
+  key: String!
+  value: ReserveConfig!
   lastUpdatedBlock: Int!
 }
 
