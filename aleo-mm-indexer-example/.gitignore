@@ -3,4 +3,3 @@ node_modules
 # Logs
 logs
 npm-debug.log*
-.env
