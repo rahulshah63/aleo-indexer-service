@@ -29,21 +29,21 @@ export const transactionsRelations = relations(transactions, ({ many }) => ({
 
 // --- Auto-Generated Tables from indexer.config.ts ---
 
-export const market_reserves = pgTable("market_reserves", {
+export const market_reserves_historicals = pgTable("market_reserves_historicals", {
   id: serial("id").primaryKey(),
   transactionId: varchar("transaction_id", { length: 255 }).notNull(),
-  token_id_cipherd: varchar("token_id_cipherd", { length: 255 }),
-  liquidity_cumulative_index_cipherd: varchar("liquidity_cumulative_index_cipherd", { length: 255 }),
-  borrow_cumulative_index_cipherd: varchar("borrow_cumulative_index_cipherd", { length: 255 }),
-  base_LTV_as_collateral_cipherd: varchar("base_LTV_as_collateral_cipherd", { length: 255 }),
-  liquidation_threshold_cipherd: varchar("liquidation_threshold_cipherd", { length: 255 }),
-  liquidation_bonus_cipherd: varchar("liquidation_bonus_cipherd", { length: 255 }),
-  decimals_cipherd: varchar("decimals_cipherd", { length: 255 }),
-  optimal_utilization_rate_cipherd: varchar("optimal_utilization_rate_cipherd", { length: 255 }),
-  base_borrow_rate_cipherd: varchar("base_borrow_rate_cipherd", { length: 255 }),
-  is_freezed_cipherd: varchar("is_freezed_cipherd", { length: 255 }),
-  is_active_cipherd: varchar("is_active_cipherd", { length: 255 }),
-  borrow_threshold_cipherd: varchar("borrow_threshold_cipherd", { length: 255 }),
+  token_id_cipher: varchar("token_id_cipher", { length: 255 }),
+  liquidity_cumulative_index_cipher: varchar("liquidity_cumulative_index_cipher", { length: 255 }),
+  borrow_cumulative_index_cipher: varchar("borrow_cumulative_index_cipher", { length: 255 }),
+  base_LTV_as_collateral_cipher: varchar("base_LTV_as_collateral_cipher", { length: 255 }),
+  liquidation_threshold_cipher: varchar("liquidation_threshold_cipher", { length: 255 }),
+  liquidation_bonus_cipher: varchar("liquidation_bonus_cipher", { length: 255 }),
+  decimals_cipher: varchar("decimals_cipher", { length: 255 }),
+  optimal_utilization_rate_cipher: varchar("optimal_utilization_rate_cipher", { length: 255 }),
+  base_borrow_rate_cipher: varchar("base_borrow_rate_cipher", { length: 255 }),
+  is_freezed_cipher: varchar("is_freezed_cipher", { length: 255 }),
+  is_active_cipher: varchar("is_active_cipher", { length: 255 }),
+  borrow_threshold_cipher: varchar("borrow_threshold_cipher", { length: 255 }),
   user_address: varchar("user_address", { length: 63 }),
   last_update_block_height: integer("last_update_block_height"),
   liquidity_rate: bigint("liquidity_rate", { mode: "number" }),
@@ -62,10 +62,16 @@ export const market_reserves = pgTable("market_reserves", {
   is_active: boolean("is_active"),
 });
 
-export const market_reservesRelations = relations(market_reserves, ({ one }) => ({
+export const market_reserves_historicalsRelations = relations(market_reserves_historicals, ({ one }) => ({
   transaction: one(transactions, {
-    fields: [market_reserves.transactionId],
+    fields: [market_reserves_historicals.transactionId],
     references: [transactions.id],
   }),
 }));
+
+export const reserve_data_mapping = pgTable("reserve_data_mapping", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: jsonb("value").notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
 

@@ -48,6 +48,11 @@ export interface MappingUpdateTrigger {
      * This is useful if the function's output directly updates the mapping value (e.g., a new balance).
      */
     valueSource?: string;
+    /**
+     * The Aleo type of the mapping key.
+     * This is used to ensure the key is correctly parsed and stored.
+     */
+    aleoType: AleoValueType;
 }
 export interface FunctionConfig {
     name: string;
@@ -126,3 +131,6 @@ export interface GeneratedSchema {
  * @returns The parsed data with Leo-typed strings converted to their corresponding values.
  */
 export declare function parseLeoTypedJSON(data: any): any;
+type Leo2JsType = 'u8' | 'u16' | 'u32' | 'u64' | 'u128' | 'field' | 'address' | 'boolean';
+export declare function JS2Leo(value: string, type: Leo2JsType | undefined): string;
+export {};

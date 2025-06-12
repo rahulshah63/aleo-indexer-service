@@ -23,7 +23,7 @@ import {
 } from '../types/leo-types.js';
 
 // Leo Type Converter
-export const field = (value: bigint): LeoField => {
+export const field = (value: bigint | string): LeoField => {
   const parsed = value + 'field';
   return leoFieldSchema.parse(parsed);
 };

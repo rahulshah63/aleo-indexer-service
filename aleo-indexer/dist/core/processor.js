@@ -1,6 +1,6 @@
 // aleo-indexer/src/core/processor.ts
 import { logger } from '../utils/logger.js';
-import { getNestedValue, parseJSONLikeString, parseLeoTypedJSON } from '../utils/types.js';
+import { getNestedValue, parseJSONLikeString, parseLeoTypedJSON, JS2Leo } from '../utils/types.js';
 import { callRpc } from './rpc.js';
 const BATCH_SIZE = 1; // Number of transactions to fetch per RPC call
 const MAX_PAGES_PER_FUNCTION_CYCLE = 1; // Limit pages fetched per function per cycle to avoid huge batches
@@ -95,7 +95,7 @@ function parseTransactionAndCollectMappingUpdates(tx, funcConfig, programConfig)
                 const candidate = {
                     programId: programConfig.programId,
                     mappingName: trigger.mappingName,
-                    key: String(key), // Ensure key is string for RPC calls
+                    key: JS2Leo(String(key), trigger.aleoType.kind === 'primitive' ? trigger.aleoType.type : undefined), // Ensure key is string for RPC calls
                     blockHeight: blockHeight,
                 };
                 if (trigger.valueSource) {
@@ -394,18 +394,21 @@ rpcUrl, db, schema) {
             let rpcValue = originalCandidate?.value; // Use pre-extracted value if available
             if (rpcValue === undefined) { // If value wasn't directly provided by the function processing/finalize, fetch it via RPC
                 rpcValue = await callRpc(rpcUrl, "getMappingValue", {
-                    programId: programId,
-                    mappingName: mappingConfig.name,
+                    program_id: programId,
+                    mapping_name: mappingConfig.name,
                     key: keyString,
                 });
             }
             if (rpcValue !== undefined && rpcValue !== null) {
                 const key = parseAleoValue(keyString, mappingConfig.key.aleoType);
                 const value = parseAleoValue(rpcValue, mappingConfig.value);
+                const parsedJsonValue = parseJSONLikeString(rpcValue);
+                //for all value, convert to js type
+                const dataToInsert = parseLeoTypedJSON(parsedJsonValue);
                 await db.insert(targetTable)
                     .values({
                     key: key,
-                    value: value,
+                    value: dataToInsert,
                     lastUpdatedBlock: blockHeight, // Use candidate's block height
                 })
                     .onConflictDoUpdate({
@@ -462,7 +465,7 @@ function parseAleoValue(aleoValueStr, targetType) {
     }
     else if (targetType.kind === 'record' || targetType.kind === 'struct' || targetType.kind === 'array') {
         try {
-            return JSON.parse(aleoValueStr);
+            return parseJSONLikeString(aleoValueStr);
         }
         catch (e) {
             logger.warn({

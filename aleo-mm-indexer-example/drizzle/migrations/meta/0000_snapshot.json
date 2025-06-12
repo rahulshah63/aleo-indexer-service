@@ -1,5 +1,5 @@
 {
-  "id": "d4baf25c-e0bd-42e2-8ac0-8a9db7469385",
+  "id": "cc4f4acf-0d2e-47ec-a221-2e8ddd508b3a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -37,8 +37,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.market_reserves": {
-      "name": "market_reserves",
+    "public.market_reserves_historicals": {
+      "name": "market_reserves_historicals",
       "schema": "",
       "columns": {
         "id": {
@@ -53,74 +53,74 @@
           "primaryKey": false,
           "notNull": true
         },
-        "token_id_cipherd": {
-          "name": "token_id_cipherd",
+        "token_id_cipher": {
+          "name": "token_id_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "liquidity_cumulative_index_cipherd": {
-          "name": "liquidity_cumulative_index_cipherd",
+        "liquidity_cumulative_index_cipher": {
+          "name": "liquidity_cumulative_index_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "borrow_cumulative_index_cipherd": {
-          "name": "borrow_cumulative_index_cipherd",
+        "borrow_cumulative_index_cipher": {
+          "name": "borrow_cumulative_index_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "base_LTV_as_collateral_cipherd": {
-          "name": "base_LTV_as_collateral_cipherd",
+        "base_LTV_as_collateral_cipher": {
+          "name": "base_LTV_as_collateral_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "liquidation_threshold_cipherd": {
-          "name": "liquidation_threshold_cipherd",
+        "liquidation_threshold_cipher": {
+          "name": "liquidation_threshold_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "liquidation_bonus_cipherd": {
-          "name": "liquidation_bonus_cipherd",
+        "liquidation_bonus_cipher": {
+          "name": "liquidation_bonus_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "decimals_cipherd": {
-          "name": "decimals_cipherd",
+        "decimals_cipher": {
+          "name": "decimals_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "optimal_utilization_rate_cipherd": {
-          "name": "optimal_utilization_rate_cipherd",
+        "optimal_utilization_rate_cipher": {
+          "name": "optimal_utilization_rate_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "base_borrow_rate_cipherd": {
-          "name": "base_borrow_rate_cipherd",
+        "base_borrow_rate_cipher": {
+          "name": "base_borrow_rate_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "is_freezed_cipherd": {
-          "name": "is_freezed_cipherd",
+        "is_freezed_cipher": {
+          "name": "is_freezed_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "is_active_cipherd": {
-          "name": "is_active_cipherd",
+        "is_active_cipher": {
+          "name": "is_active_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "borrow_threshold_cipherd": {
-          "name": "borrow_threshold_cipherd",
+        "borrow_threshold_cipher": {
+          "name": "borrow_threshold_cipher",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
@@ -220,6 +220,37 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reserve_data_mapping": {
+      "name": "reserve_data_mapping",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_updated_block": {
+          "name": "last_updated_block",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},

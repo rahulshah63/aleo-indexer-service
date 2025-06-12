@@ -1,6 +1,6 @@
 // aleo-indexer/src/utils/types.ts
 
-import { leo2js } from "../lib/aleo/index.js";
+import { js2leo, leo2js } from "../lib/aleo/index.js";
 
 // Define primitive Aleo types
 export type AleoPrimitiveType =
@@ -58,6 +58,11 @@ export interface MappingUpdateTrigger {
    * This is useful if the function's output directly updates the mapping value (e.g., a new balance).
    */
   valueSource?: string;
+  /**
+   * The Aleo type of the mapping key.
+   * This is used to ensure the key is correctly parsed and stored.
+   */
+  aleoType: AleoValueType; // The Aleo type of the mapping key
 }
 
 // Configuration for a specific Aleo function to index
@@ -235,4 +240,15 @@ function parseLeoLiteralString(value: string) {
   }
 
   return value; // Return raw string if not a typed literal
+}
+
+export function JS2Leo(value: string, type: Leo2JsType | undefined): string {
+  if(!type) {
+    return value; // If no type is provided, return the value as is
+  }
+  const parser = js2leo[type] as (T: any) => string;
+  if (!parser) {
+    throw new Error(`Unsupported Leo type: ${type}`);
+  }
+  return parser(value).toString();
 }

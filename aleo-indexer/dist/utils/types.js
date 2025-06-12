@@ -1,5 +1,5 @@
 // aleo-indexer/src/utils/types.ts
-import { leo2js } from "../lib/aleo/index.js";
+import { js2leo, leo2js } from "../lib/aleo/index.js";
 /**
  * Helper to get a nested value from an object using a dot-separated path.
  * @param obj The object to traverse.
@@ -105,5 +105,15 @@ function parseLeoLiteralString(value) {
         }
     }
     return value; // Return raw string if not a typed literal
+}
+export function JS2Leo(value, type) {
+    if (!type) {
+        return value; // If no type is provided, return the value as is
+    }
+    const parser = js2leo[type];
+    if (!parser) {
+        throw new Error(`Unsupported Leo type: ${type}`);
+    }
+    return parser(value).toString();
 }
 //# sourceMappingURL=types.js.map

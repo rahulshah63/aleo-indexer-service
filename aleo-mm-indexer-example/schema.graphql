@@ -12,8 +12,9 @@ type Query {
         functionName: String
     ): [Transaction!]
     transaction(id: String!): Transaction
-    market_reserves(limit: Int = 10, offset: Int = 0): [Market_reserves!]
-    market_reserve(id: Int!): Market_reserves
+    market_reserves_historicals(limit: Int = 10, offset: Int = 0): [Market_reserves_historicals!]
+    market_reserves_historical(id: Int!): Market_reserves_historicals
+    reserve_data_mapping(limit: Int = 10, offset: Int = 0): [Reserve_data_mapping!]
 }
 
 
@@ -36,21 +37,29 @@ type Transaction {
 
 # --- Auto-Generated Schemas from indexer.config.ts ---
 
-type Market_reserves {
+type ReserveData {
+  last_update_block_height: Int
+  liquidity_rate: BigInt
+  borrow_rate: BigInt
+  liquidity_cumulative_index: BigInt
+  borrow_cumulative_index: BigInt
+}
+
+type Market_reserves_historicals {
   id: Int!
   transaction: Transaction!
-  token_id_cipherd: String
-  liquidity_cumulative_index_cipherd: String
-  borrow_cumulative_index_cipherd: String
-  base_LTV_as_collateral_cipherd: String
-  liquidation_threshold_cipherd: String
-  liquidation_bonus_cipherd: String
-  decimals_cipherd: String
-  optimal_utilization_rate_cipherd: String
-  base_borrow_rate_cipherd: String
-  is_freezed_cipherd: String
-  is_active_cipherd: String
-  borrow_threshold_cipherd: String
+  token_id_cipher: String
+  liquidity_cumulative_index_cipher: String
+  borrow_cumulative_index_cipher: String
+  base_LTV_as_collateral_cipher: String
+  liquidation_threshold_cipher: String
+  liquidation_bonus_cipher: String
+  decimals_cipher: String
+  optimal_utilization_rate_cipher: String
+  base_borrow_rate_cipher: String
+  is_freezed_cipher: String
+  is_active_cipher: String
+  borrow_threshold_cipher: String
   user_address: String
   last_update_block_height: Int
   liquidity_rate: BigInt
@@ -67,5 +76,11 @@ type Market_reserves {
   borrow_threshold: BigInt
   is_freezed: Boolean
   is_active: Boolean
+}
+
+type Reserve_data_mapping {
+  key: String!
+  value: ReserveData!
+  lastUpdatedBlock: Int!
 }
 
