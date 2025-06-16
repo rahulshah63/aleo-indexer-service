@@ -30,7 +30,7 @@ const MAX_PAGES_PER_FUNCTION_CYCLE = parseInt(process.env.MAX_PAGES_PER_FUNCTION
  * @param {object} programConfig The overall configuration for the program.
  * @returns {{baseTxData: object, funcSpecificData: object, mappingUpdateCandidates: Array<object>}}
  */
-function parseTransactionAndCollectMappingUpdates(tx: AleoTransaction, transition: AleoTransition, funcConfig: FunctionConfig, programConfig: ProgramConfig) {
+function parseTransactionAndCollectMappingUpdates(tx: AleoTransaction, transition: AleoTransition, funcConfig: FunctionConfig, programConfig: ProgramConfig): { baseTxData: object; funcSpecificData: object; mappingUpdateCandidates: MappingUpdateCandidate[]; } {
     // Extract common fields for the main transactions table
     const baseTxData = {
         id: tx.transaction.id,

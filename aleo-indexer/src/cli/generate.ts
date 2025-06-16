@@ -67,6 +67,23 @@ function getGraphQLType(typeConfig: AleoValueType): string {
 }
 
 /**
+ * Maps a base GraphQL type to its corresponding filter input type.
+ * @param gqlType The base GraphQL type string (e.g., 'String', 'Int').
+ * @returns The GraphQL filter input type string (e.g., 'StringFilter', 'IntFilter').
+ */
+function getGraphQLFilterType(gqlType: string): string {
+    switch (gqlType) {
+        case 'String': return 'StringFilter';
+        case 'Int': return 'IntFilter';
+        case 'BigInt': return 'BigIntFilter';
+        case 'DateTime': return 'DateTimeFilter';
+        case 'JSON': return 'JSONFilter'; // You might want more specific filtering for JSON
+        case 'Boolean': return 'BooleanFilter';
+        default: return 'StringFilter'; // Fallback, consider if other types need specific filters
+    }
+}
+
+/**
  * Generates both Drizzle and GraphQL schemas based on the provided IndexerConfig.
  * @param config The IndexerConfig.
  */
@@ -208,20 +225,79 @@ import { transactions, ${generatedTableNames.join(', ')} } from './schema';
   console.log(`✅ Drizzle relations generated at ${relationsOutputPath}`);
 }
 
-
+/**
+ * Generates the GraphQL schema file (`schema.graphql`).
+ * @param config The IndexerConfig.
+ */
 async function generateGraphQLSchema(config: IndexerConfig) {
     let schemaContent = `
-# --- Base Types ---
+# --- Base Scalars ---
 scalar BigInt
 scalar DateTime
 scalar JSON
 
+# --- Generic Filter Input Types ---
+input StringFilter {
+  _eq: String
+  _neq: String
+  _gt: String
+  _gte: String
+  _lt: String
+  _lte: String
+  _in: [String!]
+  # Add other string-specific operators like _contains, _startsWith if needed
+}
+
+input IntFilter {
+  _eq: Int
+  _neq: Int
+  _gt: Int
+  _gte: Int
+  _lt: Int
+  _lte: Int
+  _in: [Int!]
+}
+
+input BigIntFilter {
+  _eq: BigInt
+  _neq: BigInt
+  _gt: BigInt
+  _gte: BigInt
+  _lt: BigInt
+  _lte: BigInt
+  _in: [BigInt!]
+}
+
+input DateTimeFilter {
+  _eq: DateTime
+  _neq: DateTime
+  _gt: DateTime
+  _gte: DateTime
+  _lt: DateTime
+  _lte: DateTime
+  _in: [DateTime!]
+}
+
+input JSONFilter {
+  _eq: JSON
+  _neq: JSON
+  # _in: [JSON!] # JSON 'in' might be complex depending on your Drizzle setup
+  # You might want to omit or add very specific JSON filtering operators
+}
+
+input BooleanFilter {
+  _eq: Boolean
+  _neq: Boolean
+}
+
+# --- Query Type ---
 type Query {
     transactions(
         limit: Int = 10,
         offset: Int = 0,
         programId: String,
-        functionName: String
+        functionName: String,
+        where: TransactionWhereInput, # <-- Added where argument
         orderBy: TransactionOrderBy = blockHeight,
         orderDirection: OrderDirection = desc
     ): [Transaction!]
@@ -230,21 +306,69 @@ type Query {
 
     const generatedGraphQLTypes: Set<string> = new Set();
     const generatedOrderEnums: Set<string> = new Set();
+    const generatedWhereInputs: Set<string> = new Set(); // To track generated WhereInput types
     let enumDefs = "";
+    let whereInputDefs = "";
+
+    // --- Define TransactionWhereInput ---
+    // This is hardcoded because Transaction is a fixed type.
+    if (!generatedWhereInputs.has('TransactionWhereInput')) {
+        whereInputDefs += `input TransactionWhereInput {\n`;
+        whereInputDefs += `  id: StringFilter\n`;
+        whereInputDefs += `  blockHeight: IntFilter\n`;
+        whereInputDefs += `  timestamp: DateTimeFilter\n`;
+        whereInputDefs += `  programId: StringFilter\n`;
+        whereInputDefs += `  functionName: StringFilter\n`;
+        whereInputDefs += `}\n\n`;
+        generatedWhereInputs.add('TransactionWhereInput');
+    }
 
     for (const program of config.programs) {
+        // --- Functions ---
         if (program.functions) {
             for (const func of program.functions) {
                 const typeName = func.tableName.charAt(0).toUpperCase() + func.tableName.slice(1);
                 generatedGraphQLTypes.add(typeName);
 
-                schemaContent += `    ${func.tableName}(limit: Int = 10, offset: Int = 0): [${typeName}!]\n`;
+                // Generate Function Where Input
+                const functionWhereInputName = `${typeName}WhereInput`;
+                if (!generatedWhereInputs.has(functionWhereInputName)) {
+                    whereInputDefs += `input ${functionWhereInputName} {\n`;
+                    whereInputDefs += `  id: IntFilter\n`; // Functions always have an 'id' column
+                    // Add filters for inputs
+                    for (const input of func.inputs || []) {
+                        const gqlType = getGraphQLType(input.aleoType);
+                        whereInputDefs += `  ${input.name}: ${getGraphQLFilterType(gqlType)}\n`;
+                    }
+                    // Add filters for outputs
+                    for (const output of func.outputs || []) {
+                        const gqlType = getGraphQLType(output.aleoType);
+                        whereInputDefs += `  ${output.name}: ${getGraphQLFilterType(gqlType)}\n`;
+                    }
+                    // Add filters for extracted columns
+                    for (const column in func.extract) {
+                        // Assuming extracted columns are typically strings
+                        whereInputDefs += `  ${column}: StringFilter\n`;
+                    }
+                    whereInputDefs += `}\n\n`;
+                    generatedWhereInputs.add(functionWhereInputName);
+                }
+
+                schemaContent += `    ${func.tableName}(\n`;
+                schemaContent += `        limit: Int = 10,\n`;
+                schemaContent += `        offset: Int = 0,\n`;
+                schemaContent += `        where: ${functionWhereInputName}, # <-- Added where argument\n`;
+                // If you want dynamic orderBy for functions, you'd generate an enum here too
+                // schemaContent += `        orderBy: ${typeName}OrderBy = id,\n`;
+                schemaContent += `        orderDirection: OrderDirection = desc\n`;
+                schemaContent += `    ): [${typeName}!]\n`;
 
                 const singular = func.tableName.endsWith('s') ? func.tableName.slice(0, -1) : func.tableName;
                 schemaContent += `    ${singular}(id: Int!): ${typeName}\n`;
             }
         }
 
+        // --- Mappings ---
         if (program.mappings) {
             for (const mapping of program.mappings) {
                 const typeName = mapping.tableName.charAt(0).toUpperCase() + mapping.tableName.slice(1);
@@ -255,15 +379,29 @@ type Query {
                 const keyType = getGraphQLType(mapping.key.aleoType);
                 const orderEnumName = `${typeName}OrderBy`;
 
-                // Create enum once
+                // Create OrderBy enum once
                 if (!generatedOrderEnums.has(orderEnumName)) {
-                    enumDefs += `enum ${orderEnumName} {\n  lastUpdatedBlock\n}\n\n`;
+                    enumDefs += `enum ${orderEnumName} {\n  lastUpdatedBlock\n  key\n}\n\n`; // Add 'key' to orderBy
                     generatedOrderEnums.add(orderEnumName);
+                }
+
+                // Generate Mapping Where Input
+                const mappingWhereInputName = `${typeName}WhereInput`;
+                if (!generatedWhereInputs.has(mappingWhereInputName)) {
+                    whereInputDefs += `input ${mappingWhereInputName} {\n`;
+                    whereInputDefs += `  key: ${getGraphQLFilterType(keyType)}\n`;
+                    whereInputDefs += `  lastUpdatedBlock: IntFilter\n`;
+                    // If your mapping value is a struct, you might add filters for its fields here
+                    // However, `value` itself is often JSON or a complex struct not directly filterable with simple operators
+                    // If you decide to support deeper filtering for struct values, that would be more complex.
+                    whereInputDefs += `}\n\n`;
+                    generatedWhereInputs.add(mappingWhereInputName);
                 }
 
                 schemaContent += `    ${plural}(\n`;
                 schemaContent += `        limit: Int = 10,\n`;
                 schemaContent += `        offset: Int = 0,\n`;
+                schemaContent += `        where: ${mappingWhereInputName}, # <-- Added where argument\n`;
                 schemaContent += `        orderBy: ${orderEnumName} = lastUpdatedBlock,\n`;
                 schemaContent += `        orderDirection: OrderDirection = desc\n`;
                 schemaContent += `    ): [${typeName}!]\n`;
@@ -275,7 +413,7 @@ type Query {
         }
     }
 
-    schemaContent += `}\n\n`;
+    schemaContent += `}\n\n`; // Closes the Query type
 
     schemaContent += `
 # --- Base Schemas ---
@@ -307,7 +445,8 @@ enum TransactionOrderBy {
   functionName
 }
 `;
-    schemaContent += enumDefs;
+    schemaContent += enumDefs; // Add generated OrderBy enums
+    schemaContent += whereInputDefs; // Add generated WhereInput types
 
 
     schemaContent += `# --- Auto-Generated Schemas from indexer.config.ts ---\n\n`;
