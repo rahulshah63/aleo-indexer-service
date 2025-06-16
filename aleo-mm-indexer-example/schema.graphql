@@ -16,18 +16,68 @@ type Query {
     transaction(id: String!): Transaction
     market_reserves_historicals(limit: Int = 10, offset: Int = 0): [Market_reserves_historicals!]
     market_reserves_historical(id: Int!): Market_reserves_historicals
-    reserve_data_mapping(
+    reserve_data(
         limit: Int = 10,
         offset: Int = 0,
-        orderBy: Reserve_data_mappingOrderBy = lastUpdatedBlock,
+        orderBy: Reserve_dataOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
-    ): [Reserve_data_mapping!]
-    reserve_config_mapping(
+    ): [Reserve_data!]
+    reserve_config(
         limit: Int = 10,
         offset: Int = 0,
-        orderBy: Reserve_config_mappingOrderBy = lastUpdatedBlock,
+        orderBy: Reserve_configOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
-    ): [Reserve_config_mapping!]
+    ): [Reserve_config!]
+    total_deposited_amount(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: Total_deposited_amountOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Total_deposited_amount!]
+    total_borrowed_amount(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: Total_borrowed_amountOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Total_borrowed_amount!]
+    total_available_liquidity(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: Total_available_liquidityOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Total_available_liquidity!]
+    deposited_amount(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: Deposited_amountOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Deposited_amount!]
+    borrowed_amount(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: Borrowed_amountOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Borrowed_amount!]
+    user_cumulative_index(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: User_cumulative_indexOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [User_cumulative_index!]
+    usersdata(
+        limit: Int = 10,
+        offset: Int = 0,
+        orderBy: UsersdataOrderBy = lastUpdatedBlock,
+        orderDirection: OrderDirection = desc
+    ): [Usersdata!]
+    deposits_historicals(limit: Int = 10, offset: Int = 0): [Deposits_historicals!]
+    deposits_historical(id: Int!): Deposits_historicals
+    borrows_historicals(limit: Int = 10, offset: Int = 0): [Borrows_historicals!]
+    borrows_historical(id: Int!): Borrows_historicals
+    withdraws_historicals(limit: Int = 10, offset: Int = 0): [Withdraws_historicals!]
+    withdraws_historical(id: Int!): Withdraws_historicals
+    repays_historicals(limit: Int = 10, offset: Int = 0): [Repays_historicals!]
+    repays_historical(id: Int!): Repays_historicals
 }
 
 
@@ -59,11 +109,39 @@ enum TransactionOrderBy {
   programId
   functionName
 }
-enum Reserve_data_mappingOrderBy {
+enum Reserve_dataOrderBy {
   lastUpdatedBlock
 }
 
-enum Reserve_config_mappingOrderBy {
+enum Reserve_configOrderBy {
+  lastUpdatedBlock
+}
+
+enum Total_deposited_amountOrderBy {
+  lastUpdatedBlock
+}
+
+enum Total_borrowed_amountOrderBy {
+  lastUpdatedBlock
+}
+
+enum Total_available_liquidityOrderBy {
+  lastUpdatedBlock
+}
+
+enum Deposited_amountOrderBy {
+  lastUpdatedBlock
+}
+
+enum Borrowed_amountOrderBy {
+  lastUpdatedBlock
+}
+
+enum User_cumulative_indexOrderBy {
+  lastUpdatedBlock
+}
+
+enum UsersdataOrderBy {
   lastUpdatedBlock
 }
 
@@ -88,6 +166,21 @@ type ReserveConfig {
   borrow_threshold: BigInt
   is_freezed: Boolean
   is_active: Boolean
+}
+
+type UserData {
+  last_updated_block_height: Int
+  total_liquidity_balance_USD: BigInt
+  total_collateral_balance_USD: BigInt
+  total_borrow_balance_USD: BigInt
+  total_fees_USD: BigInt
+  avaialble_borrow_USD: BigInt
+  current_LTV: BigInt
+  current_liquidation_threshold: BigInt
+  borrowing_power: BigInt
+  health_factor_below_threshold: Boolean
+  collateral_needed_in_USD: BigInt
+  hf_withdraw_below_threshold: Boolean
 }
 
 type Market_reserves_historicals {
@@ -123,15 +216,92 @@ type Market_reserves_historicals {
   is_active: Boolean
 }
 
-type Reserve_data_mapping {
+type Deposits_historicals {
+  id: Int!
+  transaction: Transaction!
+  token_id: String
+  amount: BigInt
+  user_hash: String
+}
+
+type Borrows_historicals {
+  id: Int!
+  transaction: Transaction!
+  token_id: String
+  user_hash: String
+  user_key: String
+  borrow_amount: BigInt
+  repay_amount: BigInt
+}
+
+type Withdraws_historicals {
+  id: Int!
+  transaction: Transaction!
+  token_id: String
+  user_hash: String
+  user_key: String
+  withdraw_amount: BigInt
+}
+
+type Repays_historicals {
+  id: Int!
+  transaction: Transaction!
+  token_id: String
+  user_hash: String
+  repay_amount: BigInt
+}
+
+type Reserve_data {
   key: String!
   value: ReserveData!
   lastUpdatedBlock: Int!
 }
 
-type Reserve_config_mapping {
+type Reserve_config {
   key: String!
   value: ReserveConfig!
+  lastUpdatedBlock: Int!
+}
+
+type Total_deposited_amount {
+  key: String!
+  value: BigInt!
+  lastUpdatedBlock: Int!
+}
+
+type Total_borrowed_amount {
+  key: String!
+  value: BigInt!
+  lastUpdatedBlock: Int!
+}
+
+type Total_available_liquidity {
+  key: String!
+  value: BigInt!
+  lastUpdatedBlock: Int!
+}
+
+type Deposited_amount {
+  key: String!
+  value: BigInt!
+  lastUpdatedBlock: Int!
+}
+
+type Borrowed_amount {
+  key: String!
+  value: BigInt!
+  lastUpdatedBlock: Int!
+}
+
+type User_cumulative_index {
+  key: String!
+  value: BigInt!
+  lastUpdatedBlock: Int!
+}
+
+type Usersdata {
+  key: String!
+  value: UserData!
   lastUpdatedBlock: Int!
 }
 

@@ -3,18 +3,12 @@
 import { Command } from 'commander';
 import { resolve } from 'path';
 import { spawn } from 'child_process';
-// import { fileURLToPath } from 'url';
-// import path from 'path';
-import 'dotenv/config'; // Load environment variables from .env file
+import 'dotenv/config';
 
 import { startIndexer } from '../core/indexer.js';
 import { generateSchemas } from './generate.js';
 import { initializeGraphQLServer } from '../server/index.js';
 import { logger } from '../utils/logger.js';
-
-// Get __dirname equivalent for ES Modules
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
 
 const program = new Command();
 

@@ -69,15 +69,120 @@ export const market_reserves_historicalsRelations = relations(market_reserves_hi
   }),
 }));
 
-export const reserve_data_mapping = pgTable("reserve_data_mapping", {
+export const reserve_data = pgTable("reserve_data", {
   key: varchar("key", { length: 255 }).primaryKey(),
   value: jsonb("value").notNull(),
   lastUpdatedBlock: integer("last_updated_block").notNull(),
 });
 
-export const reserve_config_mapping = pgTable("reserve_config_mapping", {
+export const reserve_config = pgTable("reserve_config", {
   key: varchar("key", { length: 255 }).primaryKey(),
   value: jsonb("value").notNull(),
   lastUpdatedBlock: integer("last_updated_block").notNull(),
 });
+
+export const total_deposited_amount = pgTable("total_deposited_amount", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: bigint("value", { mode: "number" }).notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+
+export const total_borrowed_amount = pgTable("total_borrowed_amount", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: bigint("value", { mode: "number" }).notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+
+export const total_available_liquidity = pgTable("total_available_liquidity", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: bigint("value", { mode: "number" }).notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+
+export const deposited_amount = pgTable("deposited_amount", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: bigint("value", { mode: "number" }).notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+
+export const borrowed_amount = pgTable("borrowed_amount", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: bigint("value", { mode: "number" }).notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+
+export const user_cumulative_index = pgTable("user_cumulative_index", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: bigint("value", { mode: "number" }).notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+
+export const usersdata = pgTable("usersdata", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  value: jsonb("value").notNull(),
+  lastUpdatedBlock: integer("last_updated_block").notNull(),
+});
+
+export const deposits_historicals = pgTable("deposits_historicals", {
+  id: serial("id").primaryKey(),
+  transactionId: varchar("transaction_id", { length: 255 }).notNull(),
+  token_id: varchar("token_id", { length: 255 }),
+  amount: bigint("amount", { mode: "number" }),
+  user_hash: varchar("user_hash", { length: 255 }),
+});
+
+export const deposits_historicalsRelations = relations(deposits_historicals, ({ one }) => ({
+  transaction: one(transactions, {
+    fields: [deposits_historicals.transactionId],
+    references: [transactions.id],
+  }),
+}));
+
+export const borrows_historicals = pgTable("borrows_historicals", {
+  id: serial("id").primaryKey(),
+  transactionId: varchar("transaction_id", { length: 255 }).notNull(),
+  token_id: varchar("token_id", { length: 255 }),
+  user_hash: varchar("user_hash", { length: 255 }),
+  user_key: varchar("user_key", { length: 255 }),
+  borrow_amount: bigint("borrow_amount", { mode: "number" }),
+  repay_amount: bigint("repay_amount", { mode: "number" }),
+});
+
+export const borrows_historicalsRelations = relations(borrows_historicals, ({ one }) => ({
+  transaction: one(transactions, {
+    fields: [borrows_historicals.transactionId],
+    references: [transactions.id],
+  }),
+}));
+
+export const withdraws_historicals = pgTable("withdraws_historicals", {
+  id: serial("id").primaryKey(),
+  transactionId: varchar("transaction_id", { length: 255 }).notNull(),
+  token_id: varchar("token_id", { length: 255 }),
+  user_hash: varchar("user_hash", { length: 255 }),
+  user_key: varchar("user_key", { length: 255 }),
+  withdraw_amount: bigint("withdraw_amount", { mode: "number" }),
+});
+
+export const withdraws_historicalsRelations = relations(withdraws_historicals, ({ one }) => ({
+  transaction: one(transactions, {
+    fields: [withdraws_historicals.transactionId],
+    references: [transactions.id],
+  }),
+}));
+
+export const repays_historicals = pgTable("repays_historicals", {
+  id: serial("id").primaryKey(),
+  transactionId: varchar("transaction_id", { length: 255 }).notNull(),
+  token_id: varchar("token_id", { length: 255 }),
+  user_hash: varchar("user_hash", { length: 255 }),
+  repay_amount: bigint("repay_amount", { mode: "number" }),
+});
+
+export const repays_historicalsRelations = relations(repays_historicals, ({ one }) => ({
+  transaction: one(transactions, {
+    fields: [repays_historicals.transactionId],
+    references: [transactions.id],
+  }),
+}));
 

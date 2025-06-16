@@ -37,6 +37,7 @@ export interface FunctionOutput {
   // Optional: JSON path within the raw transaction where this input's value can be found.
   // If not provided, the indexer will try to infer based on common Aleo transaction structures.
   parsedPath?: string;
+  rpcPath?: string;
 }
 
 /**
@@ -44,6 +45,8 @@ export interface FunctionOutput {
  * for a mapping. This allows dynamically discovering keys for mappings.
  */
 export interface MappingUpdateTrigger {
+  /** The program Id to get the mappings value from (e.g., 'account_balances'). */
+  programId: string;
   /** The name of the mapping affected by this function (e.g., 'account_balances'). */
   mappingName: string;
   /**

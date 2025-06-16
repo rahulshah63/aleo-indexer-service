@@ -100,6 +100,7 @@ export const transactions = pgTable("transactions", {
   functionName: text("function_name").notNull(), // The Aleo function name
   blockHeight: integer("block_height").notNull(),
   timestamp: timestamp("timestamp").notNull(),   // Transaction finalized timestamp
+  inserted_at: timestamp("timestamp").notNull(),   // Transaction insertion timestamp
   raw: jsonb("raw"),                             // Store the raw transaction object as JSONB
 });
 

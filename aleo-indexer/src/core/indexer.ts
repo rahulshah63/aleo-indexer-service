@@ -5,6 +5,7 @@ import { logger } from '../utils/logger.js';
 import { handleProgramFunctions, handleProgramMappings } from './processor.js';
 import pLimit from 'p-limit'; // For concurrency control
 import { eq } from 'drizzle-orm';
+import 'dotenv/config';
 
 /**
  * Retrieves the last indexed block height for a given program from the database.
@@ -135,7 +136,7 @@ export async function startIndexer(config: IndexerConfig, db: DbInstance, schema
     );
     await Promise.all(tasks);
     logger.info({ service: 'indexer', msg: 'Indexing cycle complete. Waiting for next cycle.' });
-    setTimeout(run, 30000); // Run every 30 seconds
+    setTimeout(run, parseFloat(process.env.POLLING_INTERVAL || '3000')); // Run every 3 seconds
   };
 
   await run(); // Start the first cycle immediately

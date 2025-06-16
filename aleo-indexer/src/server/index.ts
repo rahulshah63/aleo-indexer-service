@@ -1,14 +1,14 @@
 // aleo-indexer/src/server/index.ts
 
-import { Hono } from 'hono';
-import { createYoga } from 'graphql-yoga';
-import { createSchema } from 'graphql-yoga';
-import { readFileSync } from 'node:fs';
-import { asc, desc, eq } from 'drizzle-orm';
-import { logger } from '../utils/logger.js';
-import { DbInstance, GeneratedSchema } from '../utils/types.js';
-import GraphQLJSON from 'graphql-type-json';
-import { GraphQLBigInt, GraphQLDateTime } from 'graphql-scalars';
+import { Hono } from "hono";
+import { createYoga } from "graphql-yoga";
+import { createSchema } from "graphql-yoga";
+import { readFileSync } from "node:fs";
+import { asc, desc, eq } from "drizzle-orm";
+import { logger } from "../utils/logger.js";
+import { DbInstance, GeneratedSchema } from "../utils/types.js";
+import GraphQLJSON from "graphql-type-json";
+import { GraphQLBigInt, GraphQLDateTime } from "graphql-scalars";
 
 // Global variables to hold the dynamically loaded DB and schema
 let dbInstance: DbInstance | null = null;
@@ -23,7 +23,11 @@ let graphQLSchemaPath: string | null = null;
  * @param gqlSchemaPath The path to the generated GraphQL schema file.
  * @returns The Hono application instance.
  */
-export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedSchema, gqlSchemaPath: string) {
+export async function initializeGraphQLServer(
+  db: DbInstance,
+  schema: GeneratedSchema,
+  gqlSchemaPath: string
+) {
   dbInstance = db;
   generatedSchema = schema;
   graphQLSchemaPath = gqlSchemaPath;
@@ -31,60 +35,112 @@ export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedS
   const app = new Hono();
 
   // Load the generated GraphQL schema
-  const typeDefs = readFileSync(graphQLSchemaPath, 'utf-8');
+  const typeDefs = readFileSync(graphQLSchemaPath, "utf-8");
 
   // Dynamically create resolvers based on the generated schema
   const resolvers = {
     Query: {
-      transactions: async (_: any, {
-      limit = 10,
-      offset = 0,
-      programId,
-      functionName,
-      orderBy = 'blockHeight',
-      orderDirection = 'desc',
-    }: {
-      limit?: number;
-      offset?: number;
-      programId?: string;
-      functionName?: string;
-      orderBy?: 'blockHeight' | 'timestamp' | 'programId' | 'functionName';
-      orderDirection?: 'asc' | 'desc';
-    }
-  ) => {
-        if (!generatedSchema || !dbInstance) throw new Error('Database or schema not initialized.');
-        let query = dbInstance.select().from(generatedSchema.transactions);
+      transactions: async (
+        _: any,
+        {
+          limit = 10,
+          offset = 0,
+          programId,
+          functionName,
+          where,
+          orderBy = "blockHeight",
+          orderDirection = "desc",
+        }: {
+          limit?: number;
+          offset?: number;
+          programId?: string;
+          functionName?: string;
+          where?: Record<string, any>;
+          orderBy?: "blockHeight" | "timestamp" | "programId" | "functionName";
+          orderDirection?: "asc" | "desc";
+        }
+      ) => {
+        if (!generatedSchema || !dbInstance)
+          throw new Error("Database or schema not initialized.");
 
+        const { and, eq, asc, desc } = await import("drizzle-orm");
+        let query = dbInstance.select().from(generatedSchema.transactions);
+        const filterConditions = [];
+
+        // Handle dedicated filters
         if (programId) {
-          query = query.where(eq(generatedSchema.transactions.programId, programId));
+          filterConditions.push(
+            eq(generatedSchema.transactions.programId, programId)
+          );
         }
         if (functionName) {
-          query = query.where(eq(generatedSchema.transactions.functionName, functionName));
+          filterConditions.push(
+            eq(generatedSchema.transactions.functionName, functionName)
+          );
         }
-        const orderColumn = generatedSchema.transactions[orderBy];
-        query = orderDirection === 'asc' 
-          ? query.orderBy(asc(orderColumn)) 
-          : query.orderBy(desc(orderColumn));
 
+        // Handle generic 'where' clause for dynamic filtering
+        if (where) {
+          for (const key in where) {
+            if (
+              Object.prototype.hasOwnProperty.call(
+                generatedSchema.transactions,
+                key
+              )
+            ) {
+              const column =
+                generatedSchema.transactions[
+                  key as keyof typeof generatedSchema.transactions
+                ];
+              const value = where[key];
+              // This implementation uses basic equality. For more complex operators like
+              // 'greater than' or 'in', you would expand the logic here.
+              filterConditions.push(eq(column, value));
+            }
+          }
+        }
+
+        // Apply all collected filters if any exist
+        if (filterConditions.length > 0) {
+          query = query.where(and(...filterConditions));
+        }
+
+        // Apply ordering
+        const orderColumn = generatedSchema.transactions[orderBy];
+        query =
+          orderDirection === "asc"
+            ? query.orderBy(asc(orderColumn))
+            : query.orderBy(desc(orderColumn));
+
+        // Apply pagination
         query = query.limit(limit).offset(offset);
 
         return await query;
       },
       transaction: async (_: any, { id }: { id: string }) => {
-        if (!generatedSchema || !dbInstance) throw new Error('Database or schema not initialized.');
-        const result = await dbInstance.select().from(generatedSchema.transactions).where(eq(generatedSchema.transactions.id, id));
+        if (!generatedSchema || !dbInstance)
+          throw new Error("Database or schema not initialized.");
+        const { eq } = await import("drizzle-orm");
+        const result = await dbInstance
+          .select()
+          .from(generatedSchema.transactions)
+          .where(eq(generatedSchema.transactions.id, id));
         return result[0];
       },
       // Dynamically add resolvers for other generated tables (functions and mappings)
       ...createDynamicResolvers(generatedSchema),
     },
-    // Add resolvers for custom scalars like BigInt, DateTime if needed (often handled by graphql-yoga defaults or libraries)
+    // Add resolvers for custom scalars
     BigInt: GraphQLBigInt,
     DateTime: GraphQLDateTime,
-    JSON: GraphQLJSON, // If you define a JSON scalar, you'd need a package like graphql-type-json
+    JSON: GraphQLJSON,
   };
-  logger.info(`Generated GraphQL Resolvers: ${Object.keys(resolvers.Query).map(key => key).join(', ')}...`);
-  
+  logger.info(
+    `Generated GraphQL Resolvers: ${Object.keys(resolvers.Query)
+      .map((key) => key)
+      .join(", ")}...`
+  );
+
   const yoga = createYoga({
     schema: createSchema({
       typeDefs,
@@ -93,7 +149,7 @@ export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedS
     graphiql: true, // Enable GraphiQL IDE for testing
   });
   //@ts-expect-error
-  app.use('/graphql', (c) => yoga({ request: c.req.raw }));
+  app.use("/graphql", (c) => yoga({ request: c.req.raw }));
 
   // Return the Hono app instance for serving
   return app;
@@ -108,44 +164,79 @@ function createDynamicResolvers(schema: GeneratedSchema) {
   const dynamicResolvers: Record<string, Function> = {};
 
   for (const tableName in schema) {
-    if (tableName === 'transactions' || tableName === 'indexerState') {
+    if (tableName === "transactions" || tableName === "indexerState") {
       continue;
     }
 
     const table = schema[tableName];
-    if (typeof table === 'object' && table !== null && 'getSQL' in table) {
-      // Resolver for fetching many records with ordering support
+    if (typeof table === "object" && table !== null && "getSQL" in table) {
+      // Resolver for fetching many records with ordering and filtering support
       dynamicResolvers[tableName] = async (
         _: any,
         {
           limit = 10,
           offset = 0,
-          orderBy = 'lastUpdatedBlock',
-          orderDirection = 'desc',
+          where,
+          orderBy = "lastUpdatedBlock",
+          orderDirection = "desc",
         }: {
           limit?: number;
           offset?: number;
+          where?: Record<string, any>; // Define the where clause type
           orderBy?: string;
-          orderDirection?: 'asc' | 'desc';
+          orderDirection?: "asc" | "desc";
         }
       ) => {
-        if (!dbInstance) throw new Error('Database not initialized.');
+        if (!dbInstance) throw new Error("Database not initialized.");
+        const { and, eq, asc, desc } = await import('drizzle-orm');
 
-        // Defensive check: if orderBy column does not exist in table, fallback to lastUpdatedBlock
-        const orderColumn = table[orderBy] ?? table['lastUpdatedBlock'];
-        const orderedQuery = orderDirection === 'asc'
-          ? dbInstance.select().from(table).orderBy(asc(orderColumn))
-          : dbInstance.select().from(table).orderBy(desc(orderColumn));
+        // Start building the query
+        let query = dbInstance.select().from(table);
+        const filterConditions = [];
 
-        return orderedQuery.limit(limit).offset(offset);
+        // Handle generic 'where' clause for dynamic filtering
+        if (where) {
+          for (const key in where) {
+            // Check if the key is a valid column on the current table
+            if (Object.prototype.hasOwnProperty.call(table, key)) {
+              const column = table[key as keyof typeof table];
+              const value = where[key];
+              filterConditions.push(eq(column, value));
+            }
+          }
+        }
+
+        // Apply all collected filters if any exist
+        if (filterConditions.length > 0) {
+          query = query.where(and(...filterConditions));
+        }
+
+        // Apply ordering to the (potentially filtered) query
+        // Defensive check: if orderBy column does not exist, fallback to a default
+        const orderColumn = table[orderBy] ?? table["lastUpdatedBlock"];
+        query = orderDirection === 'asc'
+          ? query.orderBy(asc(orderColumn))
+          : query.orderBy(desc(orderColumn));
+
+        // Apply pagination and execute the query
+        return await query.limit(limit).offset(offset);
       };
 
       // Resolver for fetching single record by key (for mappings)
-      const singularTableName = tableName.endsWith('s') ? tableName.slice(0, -1) : tableName;
-      if (singularTableName !== tableName) {
-        dynamicResolvers[singularTableName] = async (_: any, { key }: { key: string }) => {
-          if (!dbInstance) throw new Error('Database not initialized.');
-          const result = await dbInstance.select().from(table).where(eq(table.key, key));
+      const singularTableName = tableName.endsWith("s")
+        ? tableName.slice(0, -1)
+        : tableName;
+      if (singularTableName !== tableName && table.key) { // Also check if 'key' column exists
+        dynamicResolvers[singularTableName] = async (
+          _: any,
+          { key }: { key: string }
+        ) => {
+          if (!dbInstance) throw new Error("Database not initialized.");
+          const { eq } = await import('drizzle-orm');
+          const result = await dbInstance
+            .select()
+            .from(table)
+            .where(eq(table.key, key));
           return result[0];
         };
       }

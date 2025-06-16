@@ -1,7 +1,7 @@
 // aleo-indexer/src/core/rpc.ts
 
-import asyncRetry from 'async-retry';
-import { logger } from '../utils/logger.js';
+import asyncRetry from "async-retry";
+import { logger } from "../utils/logger.js";
 
 // Define types for Aleo RPC responses
 interface RpcResponse<T> {
@@ -27,17 +27,18 @@ export async function callRpc<T>(
   rpcUrl: string, // Now takes rpcUrl as a parameter
   method: string,
   params: unknown
-): Promise<T> { // Promise<T> directly, let the caller handle RpcResponse structure if needed.
+): Promise<T> {
+  // Promise<T> directly, let the caller handle RpcResponse structure if needed.
   return asyncRetry(
     async (bail) => {
       try {
         const response = await fetch(rpcUrl, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            jsonrpc: '2.0',
+            jsonrpc: "2.0",
             id: 1, // might want to make this dynamic if making multiple concurrent calls
             method: method,
             params: params,
@@ -53,7 +54,7 @@ export async function callRpc<T>(
         const data: RpcResponse<T> = await response.json();
         if (data.error) {
           // Permanent errors (e.g., invalid parameters) should not be retried
-          if (data.error.code === -32602) {
+          if (data.error.code === -32602 || data.error.code === 0) {
             bail(new Error(`RPC permanent error: ${data.error.message}`));
           }
           throw new Error(data.error.message);
@@ -76,7 +77,7 @@ export async function callRpc<T>(
           : error.message;
 
         logger.warn({
-          service: 'rpc',
+          service: "rpc",
           msg: `RPC call '${method}' to ${rpcUrl} failed`,
           error: errorMessage,
         });
@@ -90,7 +91,7 @@ export async function callRpc<T>(
       factor: 2, // Factor by which to increase the retry delay
       onRetry: (error: Error | any, attempt) => {
         logger.info({
-          service: 'rpc',
+          service: "rpc",
           msg: `Retrying RPC call '${method}' (attempt ${attempt}) due to error: ${error.message}`,
         });
       },
@@ -98,43 +99,48 @@ export async function callRpc<T>(
   );
 }
 
+// Define the structure of an Aleo transition as returned by RPC
+export interface AleoTransition {
+  id: string;
+  program: string;
+  function: string;
+  inputs: {
+    type: "public" | "private" | "record";
+    id: string; // e.g., 'input_record'
+    value?: string; // The raw value (e.g., 'address', 'u128', or serialized record string)
+    tag?: string;
+  }[];
+  outputs: {
+    type: string;
+    id: string;
+    checksum?: string;
+    value: string;
+  }[];
+  tpk: string;
+  tcm: string;
+}
+
 // Define the structure of an Aleo transaction as returned by RPC
 export interface AleoTransaction {
-  status: 'accepted' | 'rejected' | 'finalized';
-  type: 'execute';
+  status: "accepted" | "rejected" | "finalized";
+  type: "execute";
   transaction: {
     type: string;
     id: string; // transaction_id
-    execution?: { // execution block is optional
-      transitions: {
-        id: string;
-        program: string;
-        function: string;
-        inputs: {
-          type: 'public' | 'private' | 'record';
-          id: string; // e.g., 'input_record'
-          value?: string; // The raw value (e.g., 'address', 'u128', or serialized record string)
-          tag?: string;
-        }[];
-        outputs: {
-          type: string;
-          id: string;
-          checksum?: string;
-          value: string;
-        }[];
-        tpk: string;
-        tcm: string;
-      }[];
+    execution?: {
+      // execution block is optional
+      transitions: AleoTransition[];
       global_state_root: string;
       proof: string;
     };
-    fee?: { // fee block is optional
+    fee?: {
+      // fee block is optional
       transition: {
         id: string;
         program: string;
         function: string;
         inputs: {
-          type: 'public' | 'private';
+          type: "public" | "private";
           id: string;
           value: string;
         }[];
@@ -150,7 +156,8 @@ export interface AleoTransaction {
       proof: string;
     };
   };
-  finalize?: { // finalize block is optional
+  finalize?: {
+    // finalize block is optional
     type: string;
     mapping_id: string;
     index: number;
