@@ -175,6 +175,7 @@ type Query {
 
 type IndexerState {
     programName: String!
+    functionName: String!
     lastIndexedBlock: Int!
     lastUpdated: DateTime!
 }

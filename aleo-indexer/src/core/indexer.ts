@@ -4,101 +4,106 @@ import { ProgramConfig, IndexerConfig, DbInstance, GeneratedSchema } from '../ut
 import { logger } from '../utils/logger.js';
 import { handleProgramFunctions, handleProgramMappings } from './processor.js';
 import pLimit from 'p-limit'; // For concurrency control
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import 'dotenv/config';
 
 /**
- * Retrieves the last indexed block height for a given program from the database.
+ * Retrieves the last indexed block/page for a given program and function from the database.
  * @param db The Drizzle DB instance.
  * @param schema The dynamically loaded Drizzle schema, specifically `indexerState` table.
  * @param programName The full program ID (e.g., "token_registry.aleo").
- * @returns The last indexed block height, or 0 if not found.
+ * @param functionName The name of the function within the program (e.g., "main").
+ * @returns The last indexed block/page, or 0 if not found.
  */
-async function getLastIndexedBlock(db: DbInstance, schema: GeneratedSchema, programName: string): Promise<number> {
+async function getLastIndexedBlock(db: DbInstance, schema: GeneratedSchema, programName: string, functionName: string): Promise<number> {
   const result = await db
     .select({ lastIndexedBlock: schema.indexerState.lastIndexedBlock })
     .from(schema.indexerState)
-    .where(eq(schema.indexerState.programName, programName));
+    .where(
+      and(
+        eq(schema.indexerState.programName, programName),
+        eq(schema.indexerState.functionName, functionName)
+      )
+    );
 
   return result.length > 0 ? result[0].lastIndexedBlock : 0;
 }
 
 /**
- * Updates the last indexed block height for a given program in the database.
+ * Updates the last indexed block/page for a given program and function in the database.
  * @param db The Drizzle DB instance.
  * @param schema The dynamically loaded Drizzle schema, specifically `indexerState` table.
  * @param programName The full program ID.
- * @param blockHeight The new last indexed block height.
+ * @param functionName The name of the function within the program.
+ * @param blockHeight The new last indexed block/page.
  */
-async function updateLastIndexedBlock(db: DbInstance, schema: GeneratedSchema, programName: string, blockHeight: number) {
+async function updateLastIndexedBlock(db: DbInstance, schema: GeneratedSchema, programName: string, functionName: string, blockHeight: number) {
   await db
     .insert(schema.indexerState)
-    .values({ programName, lastIndexedBlock: blockHeight, lastUpdated: new Date() })
+    .values({ programName, functionName, lastIndexedBlock: blockHeight, lastUpdated: new Date() })
     .onConflictDoUpdate({
-      target: schema.indexerState.programName,
+      target: [schema.indexerState.programName, schema.indexerState.functionName], // Target composite primary key
       set: { lastIndexedBlock: blockHeight, lastUpdated: new Date() },
     });
 }
 
 /**
- * Processes a single Aleo program by handling its functions and mappings.
+ * Processes a single Aleo program by coordinating the fetching and saving of function-level progress
+ * based on the total number of transactions indexed.
  * @param programConfig The configuration for the program.
- * @param allProgramConfigs All program configurations for the current indexing cycle. (NEW)
+ * @param allProgramConfigs All program configurations for the current indexing cycle.
  * @param rpcUrl The RPC URL to use.
  * @param db The Drizzle DB instance.
  * @param schema The dynamically loaded Drizzle schema.
  */
 async function processProgram(
   programConfig: ProgramConfig,
-  allProgramConfigs: ProgramConfig[], // Added to pass to handleProgramMappings
+  allProgramConfigs: ProgramConfig[],
   rpcUrl: string,
   db: DbInstance,
   schema: GeneratedSchema
 ) {
-  // Use programConfig.programId for state tracking
-  const lastIndexedBlock = await getLastIndexedBlock(db, schema, programConfig.programId);
-  logger.info({
-    service: 'indexer',
-    msg: `Processing program ${programConfig.programId} starting from page ${lastIndexedBlock}`, // Changed to page for clarity
-  });
+  if (!programConfig.functions || programConfig.functions.length === 0) {
+    logger.info({ service: 'indexer', msg: `Program ${programConfig.programId} has no functions to index.` });
+    return;
+  }
 
-  // Handle functions (transactions)
-  // handleProgramFunctions now returns both the next page and mapping update candidates
-  const { nextPage: nextFunctionPage, mappingUpdateCandidates } = await handleProgramFunctions(
+  // 1. Build the initial progress map. The value from the DB is the total transactions indexed so far.
+  const functionProgress: { [functionName: string]: number } = {};
+  for (const funcConfig of programConfig.functions) {
+    functionProgress[funcConfig.name] = await getLastIndexedBlock(db, schema, programConfig.programId, funcConfig.name);
+  }
+
+  const { newFunctionProgress, mappingUpdateCandidates } = await handleProgramFunctions(
     programConfig,
     rpcUrl,
     db,
     schema,
-    lastIndexedBlock
+    functionProgress
   );
 
-  // Update last indexed block for functions based on actual transactions processed if possible,
-  // otherwise, rely on the page number as a proxy for progress.
-  // Note: `aleoTransactionsForProgram` takes a `page` parameter, so `nextFunctionPage` is the next page to fetch.
-  // It indicates progress, even if it's not a direct block height.
-  if (nextFunctionPage > lastIndexedBlock) {
-    await updateLastIndexedBlock(db, schema, programConfig.programId, nextFunctionPage);
-    logger.info({
-      service: 'indexer',
-      msg: `Program ${programConfig.programId} functions indexed up to page ${nextFunctionPage - 1}. Next page to process: ${nextFunctionPage}.`,
-    });
-  } else {
-    logger.info({
-      service: 'indexer',
-      msg: `Program ${programConfig.programId} functions: No new transactions processed on page ${lastIndexedBlock}.`,
-    });
+  for (const funcName in newFunctionProgress) {
+    const newCount = newFunctionProgress[funcName];
+    const originalCount = functionProgress[funcName] || 0;
+    if (newCount > originalCount) {
+      await updateLastIndexedBlock(db, schema, programConfig.programId, funcName, newCount);
+      logger.info({
+        service: 'indexer',
+        msg: `Updated progress for ${programConfig.programId}/${funcName} to ${newCount} total transactions.`,
+      });
+    }
   }
 
-
-  // Handle mappings (updates based on recent finalized transactions AND function triggers)
-  // Pass the collected mappingUpdateCandidates
-  await handleProgramMappings(
-    mappingUpdateCandidates, // Pass candidates from handleProgramFunctions
-    allProgramConfigs,       // Pass all program configs so handleProgramMappings can resolve mapping definitions
-    rpcUrl,
-    db,
-    schema
-  );
+  if (mappingUpdateCandidates.length > 0) {
+    logger.info({ service: 'indexer', msg: `Processing ${mappingUpdateCandidates.length} mapping candidates.` });
+    await handleProgramMappings(
+      mappingUpdateCandidates,
+      allProgramConfigs,
+      rpcUrl,
+      db,
+      schema
+    );
+  }
 }
 
 /**
@@ -117,7 +122,7 @@ export async function startIndexer(config: IndexerConfig, db: DbInstance, schema
   }
 
   logger.info({ service: 'indexer', msg: `Starting indexer for programs: ${config.programs.map(p => p.programId).join(', ')}...` });
-  const limit = pLimit(5); // Concurrency limit for processing programs
+  const limit = pLimit(parseInt(process.env.PROGRAM_CONCURRENCY_LIMIT || '10')); // Concurrency limit for processing programs
 
   const run = async () => {
     logger.info({ service: 'indexer', msg: 'Running indexing cycle...' });

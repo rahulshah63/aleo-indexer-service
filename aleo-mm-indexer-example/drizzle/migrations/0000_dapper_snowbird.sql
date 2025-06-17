@@ -29,9 +29,11 @@ CREATE TABLE "deposits_historicals" (
 );
 --> statement-breakpoint
 CREATE TABLE "indexer_state" (
-	"program_name" varchar(255) PRIMARY KEY NOT NULL,
+	"program_name" varchar(255) NOT NULL,
+	"function_name" varchar(255) NOT NULL,
 	"last_indexed_block" integer DEFAULT 0 NOT NULL,
-	"last_updated" timestamp DEFAULT now() NOT NULL
+	"last_updated" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "indexer_state_program_name_function_name_pk" PRIMARY KEY("program_name","function_name")
 );
 --> statement-breakpoint
 CREATE TABLE "market_reserves_historicals" (
@@ -111,6 +113,7 @@ CREATE TABLE "transactions" (
 	"function_name" text NOT NULL,
 	"block_height" integer NOT NULL,
 	"timestamp" timestamp NOT NULL,
+	"inserted_at" timestamp NOT NULL,
 	"raw" jsonb
 );
 --> statement-breakpoint

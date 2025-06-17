@@ -98,17 +98,20 @@ export async function generateSchemas(config: IndexerConfig) {
  */
 async function generateDrizzleSchema(config: IndexerConfig) {
   let schemaContent = `
-import { pgTable, serial, text, varchar, timestamp, jsonb, integer, bigint, boolean, smallint } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, varchar, timestamp, jsonb, integer, bigint, boolean, smallint, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm'; // Import relations for defining relationships
 
 // --- Base Indexer Tables (Always Included) ---
 
 // Table to track the indexing progress for each program
 export const indexerState = pgTable("indexer_state", {
-  programName: varchar("program_name", { length: 255 }).primaryKey(),
+  programName: varchar("program_name", { length: 255 }).notNull(),
+  functionName: varchar("function_name", { length: 255 }).notNull(),
   lastIndexedBlock: integer("last_indexed_block").default(0).notNull(),
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-});
+}, (table)=> [
+  primaryKey({ columns: [table.programName, table.functionName] }),
+]);
 
 // Table to store raw Aleo transaction details that are indexed
 export const transactions = pgTable("transactions", {
@@ -117,7 +120,7 @@ export const transactions = pgTable("transactions", {
   functionName: text("function_name").notNull(), // The Aleo function name
   blockHeight: integer("block_height").notNull(),
   timestamp: timestamp("timestamp").notNull(),   // Transaction finalized timestamp
-  inserted_at: timestamp("timestamp").notNull(),   // Transaction insertion timestamp
+  inserted_at: timestamp("inserted_at").notNull(),   // Transaction insertion timestamp
   raw: jsonb("raw"),                             // Store the raw transaction object as JSONB
 });
 
@@ -420,6 +423,7 @@ type Query {
 
 type IndexerState {
     programName: String!
+    functionName: String!
     lastIndexedBlock: Int!
     lastUpdated: DateTime!
 }
