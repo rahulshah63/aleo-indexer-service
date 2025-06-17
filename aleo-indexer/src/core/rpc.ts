@@ -24,7 +24,7 @@ interface RpcResponse<T> {
  * @returns The result of the RPC call.
  */
 export async function callRpc<T>(
-  rpcUrl: string, // Now takes rpcUrl as a parameter
+  rpcUrl: string,
   method: string,
   params: unknown
 ): Promise<T> {
@@ -39,7 +39,7 @@ export async function callRpc<T>(
           },
           body: JSON.stringify({
             jsonrpc: "2.0",
-            id: 1, // might want to make this dynamic if making multiple concurrent calls
+            id: 1, // Static ID for simplicity, can be randomized if needed in concurent calls
             method: method,
             params: params,
           }),
@@ -54,7 +54,7 @@ export async function callRpc<T>(
         const data: RpcResponse<T> = await response.json();
         if (data.error) {
           // Permanent errors (e.g., invalid parameters) should not be retried
-          if (data.error.code === -32602 || data.error.code === 0) {
+          if (data.error.code === 0) {
             bail(new Error(`RPC permanent error: ${data.error.message}`));
           }
           throw new Error(data.error.message);
@@ -62,10 +62,7 @@ export async function callRpc<T>(
 
         if (data.result === undefined) {
           // This can happen if the RPC call returns a successful response but with a null/undefined result
-          // which might indicate no data found for the query (e.g., no transactions on a page).
-          // Treat as success with no data, or throw if result is expected.
-          // For now, let's return undefined if result is absent but no error.
-          return undefined as T; // Type assertion to allow undefined for T
+          return undefined as T;
         }
 
         return data.result;
@@ -85,6 +82,7 @@ export async function callRpc<T>(
       }
     },
     {
+      //todo: can be configured via env
       retries: 5, // Number of retries before giving up
       minTimeout: 1000, // Initial delay before first retry
       maxTimeout: 60000, // Maximum delay between retries
@@ -106,8 +104,8 @@ export interface AleoTransition {
   function: string;
   inputs: {
     type: "public" | "private" | "record";
-    id: string; // e.g., 'input_record'
-    value?: string; // The raw value (e.g., 'address', 'u128', or serialized record string)
+    id: string;
+    value?: string;
     tag?: string;
   }[];
   outputs: {
@@ -126,15 +124,13 @@ export interface AleoTransaction {
   type: "execute";
   transaction: {
     type: string;
-    id: string; // transaction_id
+    id: string;
     execution?: {
-      // execution block is optional
       transitions: AleoTransition[];
       global_state_root: string;
       proof: string;
     };
     fee?: {
-      // fee block is optional
       transition: {
         id: string;
         program: string;
@@ -157,19 +153,18 @@ export interface AleoTransaction {
     };
   };
   finalize?: {
-    // finalize block is optional
     type: string;
     mapping_id: string;
     index: number;
     key_id: string;
     value_id: string;
   }[];
-  finalizedAt?: string; // Timestamp when finalized (as string, convert to number)
+  finalizedAt?: string;
 }
 
 // Interface for mapping value returned by RPC
 export interface AleoMappingValue {
   type: string;
-  id: string; // The ID representing the value
-  value: string; // The actual value string (e.g., 'u128.private', 'record.private')
+  id: string; 
+  value: string;
 }

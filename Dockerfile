@@ -11,7 +11,6 @@ RUN bun install
 RUN bun run build
 RUN bun link
 
-# --- Commands for aleo-mm-indexer-example ---
 WORKDIR /app/aleo-mm-indexer-example
 RUN bun install
 RUN bun link aleo-indexer

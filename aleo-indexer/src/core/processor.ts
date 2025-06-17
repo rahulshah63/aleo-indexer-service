@@ -23,7 +23,7 @@ import "dotenv/config";
 interface MappingUpdateCandidate {
   programId: string;
   mappingName: string;
-  key: string; // The raw Aleo string representation of the key
+  key: string;
   value?: string; // Optional: The raw Aleo string representation of the value, if directly available from function output/finalize
   blockHeight: number; // The block height at which this update was observed
 }
@@ -86,7 +86,6 @@ function parseTransactionAndCollectMappingUpdates(
   for (const output of funcConfig.outputs || []) {
     let outputValue;
 
-    // Step 1: Use the configured rpcPath to get the raw value from the transition object.
     if (output.rpcPath) {
       outputValue = getNestedValue(tx, output.rpcPath);
     } else {
@@ -107,7 +106,7 @@ function parseTransactionAndCollectMappingUpdates(
       continue;
     }
 
-    // Step 2: If the value is a string, it might be a complex type that needs parsing.
+    // If the value is a json stringified, it might be a complex type that needs parsing.
     if (typeof outputValue === "string") {
       try {
         const parsedData = parseJSONLikeString(outputValue);
@@ -121,7 +120,6 @@ function parseTransactionAndCollectMappingUpdates(
       }
     }
 
-    // Step 3: Perform final parsing based on the specified Leo type.
     try {
       outputValue = parseLeoTypedJSON(outputValue);
     } catch (e) {
@@ -132,7 +130,6 @@ function parseTransactionAndCollectMappingUpdates(
       });
     }
 
-    // Step 4: Assign the final value.
     funcSpecificData[output.name] = outputValue;
   }
 
@@ -146,7 +143,6 @@ function parseTransactionAndCollectMappingUpdates(
   const mappingUpdateCandidates = [];
   const blockHeight = baseTxData.blockHeight;
 
-  // Collect updates from transition-level triggers
   if (funcConfig.triggersMappingUpdates) {
     for (const trigger of funcConfig.triggersMappingUpdates) {
       const key = getNestedValue(funcSpecificData, trigger.keySource);
@@ -300,7 +296,7 @@ export async function handleProgramFunctions(
           rpcPayload
         );
 
-        // Filter for finalized or accepted execute transactions AND ensure they match the specific program and function.
+        // Filter for finalized or accepted execute transactions.
         transactionsBatch = (response || []).filter(
           (tx) =>
             tx.status === "finalized" ||
@@ -359,16 +355,8 @@ export async function handleProgramFunctions(
       });
 
       // CRITICAL: When collecting transactions concurrently, ensure thread safety for shared arrays/sets.
-      // `transactionsCollectedInThisCycle` and `processedTransactionsSet` are shared.
-      // Since `Set.add` and `Array.push` are generally thread-safe for simple types in JS,
       // we just need to be mindful that the *order* of addition here doesn't matter for the final set,
-      // but it *does* matter for `transactionsCollectedInThisCycle` before sorting.
-      // The sorting happens *after* all concurrent tasks complete, which is correct.
       for (const tx of newTransactionsToProcess) {
-        // Add to a local collection for now, or ensure atomicity if directly modifying shared global state.
-        // For simplicity, we're adding directly to `transactionsCollectedInThisCycle` and `processedTransactionsSet`.
-        // JavaScript's single-threaded event loop means these operations are atomic in practice.
-        // The critical part is that we filter by `processedTransactionsSet.has` *before* adding to the array.
         if (!processedTransactionsSet.has(tx.transaction.id)) {
           transactionsCollectedInThisCycle.push(tx);
           processedTransactionsSet.add(tx.transaction.id);
@@ -438,13 +426,10 @@ export async function handleProgramFunctions(
 
   for (const tx of transactionsCollectedInThisCycle) {
     const transitions = tx.transaction?.execution?.transitions;
-
-    // Guard against transactions with no transitions
     if (!transitions || !Array.isArray(transitions)) {
       continue;
     }
 
-    // Loop through each transition in the array
     for (const transition of transitions) {
       const functionName = transition?.function;
       const funcConfig = programConfig.functions.find(
@@ -467,11 +452,10 @@ export async function handleProgramFunctions(
         }
 
         functionSpecificInserts[funcConfig.tableName].push({
-          transactionId: tx.transaction.id, // Link to the base transaction
+          transactionId: tx.transaction.id,
           ...funcSpecificData,
         });
 
-        // Collect mapping update candidates from this transition
         allMappingUpdateCandidates.push(...mappingUpdateCandidates);
       } else {
         logger.warn({
@@ -511,7 +495,7 @@ export async function handleProgramFunctions(
       const targetTable = schema[tableName]; // Access the table dynamically from the schema object
       if (targetTable) {
         try {
-          await db.insert(targetTable).values(records).onConflictDoNothing(); // Prevents inserting duplicates based on primary key (serial id for events)
+          await db.insert(targetTable).values(records).onConflictDoNothing();
           logger.info({
             service: "processor",
             msg: `Inserted ${records.length} records into '${tableName}' for ${programConfig.programId}.`,
@@ -604,14 +588,13 @@ export async function handleProgramMappings(
     }
 
     try {
-      // Find the original candidate to get the block height and potentially a pre-parsed value
       const originalCandidate = mappingUpdateCandidates.find(
         (c) =>
           c.programId === programId &&
           c.mappingName === mappingName &&
           c.key === keyString
       );
-      const blockHeight = originalCandidate?.blockHeight || 0; // Use candidate's block height or fallback
+      const blockHeight = originalCandidate?.blockHeight || 0; 
 
       let rpcValue: string | undefined = originalCandidate?.value; // Use pre-extracted value if available
 
@@ -636,7 +619,7 @@ export async function handleProgramMappings(
           .values({
             key: key,
             value: dataToInsert,
-            lastUpdatedBlock: blockHeight, // Use candidate's block height
+            lastUpdatedBlock: blockHeight,
           })
           .onConflictDoUpdate({
             target: targetTable.key,

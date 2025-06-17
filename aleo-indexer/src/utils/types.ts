@@ -45,33 +45,31 @@ export interface FunctionOutput {
  * for a mapping. This allows dynamically discovering keys for mappings.
  */
 export interface MappingUpdateTrigger {
-  /** The program Id to get the mappings value from (e.g., 'account_balances'). */
+  /** The program Id to get the mappings value from. */
   programId: string;
-  /** The name of the mapping affected by this function (e.g., 'account_balances'). */
+  /** The name of the mapping affected by this function. */
   mappingName: string;
   /**
    * The path within the *parsed function-specific data* where the mapping key can be found.
    * This corresponds to a column name in the function's generated database table.
-   * Example: 'sender', 'receiver', 'token_id'.
    */
   keySource: string;
   /**
    * Optional: The path within the *parsed function-specific data* where the mapping value can be found.
    * If not provided, `handleProgramMappings` will fetch the value using `getMappingValue`.
-   * This is useful if the function's output directly updates the mapping value (e.g., a new balance).
    */
   valueSource?: string;
   /**
    * The Aleo type of the mapping key.
    * This is used to ensure the key is correctly parsed and stored.
    */
-  aleoType: AleoValueType; // The Aleo type of the mapping key
+  aleoType: AleoValueType;
 }
 
 // Configuration for a specific Aleo function to index
 export interface FunctionConfig {
-  name: string; // The name of the Aleo function (e.g., "transfer_public")
-  tableName: string; // The SQL table name where events from this function will be stored (e.g., "public_transfers")
+  name: string; // The name of the Aleo function
+  tableName: string; // The SQL table name where events from this function will be stored
   inputs?: FunctionInput[]; // The inputs to extract from this function's transitions
   outputs?: FunctionOutput[]; // The outputs to extract from this function's transitions
   // Optional: Additional fields to extract from the raw transaction that are not direct function inputs.
@@ -81,12 +79,12 @@ export interface FunctionConfig {
    * Optional: Specifies which mappings should be updated based on this function's execution.
    * This enables dynamic discovery of mapping keys.
    */
-  triggersMappingUpdates?: MappingUpdateTrigger[]; // <--- NEW PROPERTY
+  triggersMappingUpdates?: MappingUpdateTrigger[];
 }
 
 // Configuration for a mapping's key (used in MappingConfig)
 export interface MappingKeyConfig {
-  name: string; // Name of the key field (e.g., "account_address")
+  name: string; // Name of the key field
   aleoType: AleoValueType; // Aleo type of the key
   // Optional: JSON path within the `finalize` entry to get the key's value.
   // If not provided, defaults to 'key_id'.
@@ -95,8 +93,8 @@ export interface MappingKeyConfig {
 
 // Configuration for a specific Aleo mapping to index
 export interface MappingConfig {
-  name: string; // The name of the Aleo mapping (e.g., "account_balances")
-  tableName: string; // The SQL table name where the state of this mapping will be stored (e.g., "balances_map")
+  name: string; // The name of the Aleo mapping
+  tableName: string; // The SQL table name where the state of this mapping will be stored
   key: MappingKeyConfig; // Configuration for the mapping's key
   value: AleoValueType; // Configuration for the mapping's value type
   // Optional: JSON path within the `finalize` entry to get the value's value.
@@ -113,7 +111,7 @@ export interface ProgramConfig {
 
 // Overall indexer configuration
 export interface IndexerConfig {
-  rpcUrl: string; // The Aleo RPC URL to connect to
+  rpcUrl: string; // The Aleo RPC URL to get transactions from
   programs: ProgramConfig[]; // Array of programs to index
 }
 
@@ -130,7 +128,7 @@ export function getNestedValue(obj: any, path: string): any {
   const parts = path.split('.');
   let current = obj;
   for (const part of parts) {
-    if (part.includes('[')) { // Handle array indexing
+    if (part.includes('[')) {
       const arrayPart = part.substring(0, part.indexOf('['));
       const index = parseInt(part.substring(part.indexOf('[') + 1, part.indexOf(']')));
       if (!current[arrayPart] || !Array.isArray(current[arrayPart]) || current[arrayPart].length <= index) {
@@ -164,10 +162,8 @@ export function parseJSONLikeString(recordString: string) {
   return JSON.parse(correctJson);
 }
 
-// Define a placeholder for the Drizzle instance and the generated schema tables
-// These will be passed dynamically from the `startIndexer` function
 export interface DbInstance {
-  insert: any; // Simplified for now, replace with actual Drizzle `insert` return type
+  insert: any;
   select: any;
   update: any;
   delete: any;
@@ -176,7 +172,7 @@ export interface DbInstance {
 export interface GeneratedSchema {
   transactions: any;
   indexerState: any;
-  [key: string]: any; // Allow dynamic access to other generated tables (functions, mappings)
+  [key: string]: any;
 }
 
 /**
@@ -245,6 +241,14 @@ function parseLeoLiteralString(value: string) {
   return value; // Return raw string if not a typed literal
 }
 
+/**
+ * Converts a JavaScript value to its corresponding Leo string representation based on the provided type.
+ *
+ * @param value - The JavaScript value to convert.
+ * @param type - The target Leo type to convert the value to. If undefined, the original value is returned.
+ * @returns The value converted to a Leo-compatible string, or the original value if no type is provided.
+ * @throws {Error} If the provided Leo type is unsupported.
+ */
 export function JS2Leo(value: string, type: Leo2JsType | undefined): string {
   if(!type) {
     return value; // If no type is provided, return the value as is

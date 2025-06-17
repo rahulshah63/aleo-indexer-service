@@ -201,10 +201,7 @@ export const transactionsRelations = relations(transactions, ({ many }) => ({
     }
   }
 
-  // Create relations.ts (can be a separate file or included here for simplicity)
-  // For simplicity, we can include relations directly in schema.ts for small projects.
-  // For large schemas, a separate `relations.ts` file is cleaner.
-  // The user asked for a separate `relations.ts`, so let's aim for that.
+  // Create relations.ts
   let relationsContent = `
 import { relations } from 'drizzle-orm';
 import { transactions, ${generatedTableNames.join(', ')} } from './schema';
@@ -222,7 +219,7 @@ import { transactions, ${generatedTableNames.join(', ')} } from './schema';
 
   await fs.mkdir(path.dirname(drizzleOutputPath), { recursive: true });
   await fs.writeFile(drizzleOutputPath, schemaContent);
-  await fs.writeFile(relationsOutputPath, relationsContent); // Write empty relations.ts for now, or populate more if needed.
+  await fs.writeFile(relationsOutputPath, relationsContent); // Write empty relations.ts for now, or populate in future if needed.
   
   console.log(`✅ Drizzle schema generated at ${drizzleOutputPath}`);
   console.log(`✅ Drizzle relations generated at ${relationsOutputPath}`);
@@ -309,7 +306,7 @@ type Query {
 
     const generatedGraphQLTypes: Set<string> = new Set();
     const generatedOrderEnums: Set<string> = new Set();
-    const generatedWhereInputs: Set<string> = new Set(); // To track generated WhereInput types
+    const generatedWhereInputs: Set<string> = new Set();
     let enumDefs = "";
     let whereInputDefs = "";
 
@@ -361,8 +358,7 @@ type Query {
                 schemaContent += `        limit: Int = 10,\n`;
                 schemaContent += `        offset: Int = 0,\n`;
                 schemaContent += `        where: ${functionWhereInputName}, # <-- Added where argument\n`;
-                // If you want dynamic orderBy for functions, you'd generate an enum here too
-                // schemaContent += `        orderBy: ${typeName}OrderBy = id,\n`;
+                schemaContent += `        orderBy: ${typeName}OrderBy = id,\n`;
                 schemaContent += `        orderDirection: OrderDirection = desc\n`;
                 schemaContent += `    ): [${typeName}!]\n`;
 
@@ -394,9 +390,6 @@ type Query {
                     whereInputDefs += `input ${mappingWhereInputName} {\n`;
                     whereInputDefs += `  key: ${getGraphQLFilterType(keyType)}\n`;
                     whereInputDefs += `  lastUpdatedBlock: IntFilter\n`;
-                    // If your mapping value is a struct, you might add filters for its fields here
-                    // However, `value` itself is often JSON or a complex struct not directly filterable with simple operators
-                    // If you decide to support deeper filtering for struct values, that would be more complex.
                     whereInputDefs += `}\n\n`;
                     generatedWhereInputs.add(mappingWhereInputName);
                 }

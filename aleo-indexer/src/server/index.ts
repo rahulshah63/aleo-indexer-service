@@ -15,7 +15,6 @@ import { GraphQLBigInt, GraphQLDateTime } from 'graphql-scalars';
 let dbInstance: DbInstance | null = null;
 let generatedSchema: GeneratedSchema | null = null;
 
-// Define the operators your API will support, mapping them to Drizzle functions
 const operatorMap = {
   _eq: eq,
   _neq: ne,
@@ -75,7 +74,6 @@ function buildWhereClause(
 
 /**
  * Initializes the GraphQL server with the provided DB connection, generated schema, and GraphQL schema path.
- * This function will be called by the `aleo-indexer start` command.
  * @param db The Drizzle DB instance.
  * @param schema The dynamically loaded Drizzle schema tables.
  * @param gqlSchemaPath The path to the generated GraphQL schema file.
@@ -106,7 +104,7 @@ export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedS
         offset?: number;
         programId?: string;
         functionName?: string;
-        where?: Record<string, Record<string, any>>; // <-- ADDED where type
+        where?: Record<string, Record<string, any>>;
         orderBy?: 'blockHeight' | 'timestamp' | 'programId' | 'functionName';
         orderDirection?: 'asc' | 'desc';
       }
@@ -115,8 +113,6 @@ export async function initializeGraphQLServer(db: DbInstance, schema: GeneratedS
 
         let query = dbInstance.select().from(generatedSchema.transactions);
         const filterConditions: SQL[] = [];
-
-        // --- REFACTORED FILTERING LOGIC ---
 
         // Handle dedicated filters first
         if (programId) {
@@ -191,7 +187,6 @@ function createDynamicResolvers(schema: GeneratedSchema) {
 
     const table = schema[tableName];
     if (typeof table === 'object' && table !== null && 'getSQL' in table) {
-      // Resolver for fetching many records with ordering and filtering support
       dynamicResolvers[tableName] = async (
         _: any,
         {
@@ -237,7 +232,6 @@ function createDynamicResolvers(schema: GeneratedSchema) {
         return await query.limit(limit).offset(offset);
       };
 
-      // ... singular resolver logic remains the same ...
       const singularTableName = tableName.endsWith('s') ? tableName.slice(0, -1) : tableName;
       if (singularTableName !== tableName) {
         dynamicResolvers[singularTableName] = async (_: any, { key }: { key: string }) => {

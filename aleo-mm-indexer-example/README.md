@@ -42,7 +42,7 @@ Ensure you have Bun installed. Then, install the project dependencies:
 ```bash
 bun install
 ```
-Note: You will also need to ensure the aleo-indexer package is linked or installed if you're developing it locally. If you're using this as a standalone example, you'd typically publish/install aleo-indexer as a package.
+Note: You will also need to ensure the aleo-indexer package is linked or installed if you're developing it locally. If this is a standalone example, you need to use published `aleo-indexer` package.
 
 ### 4. Generate Schemas
 
@@ -72,7 +72,7 @@ bun run db:migrate
 
 ### 6. Start the Indexer and GraphQL Server
 
-In development mode (with hot-reloading):
+In development mode:
 
 ```Bash
 bun run dev
@@ -83,7 +83,7 @@ In production mode:
 bun run start
 ```
 
-Once the server starts, the GraphQL API will be available at http://localhost:4000/graphql (or your configured port). You can access the GraphiQL IDE in your browser to explore the available queries and data.
+Once the server starts, the GraphQL API will be available at http://localhost:3000/graphql (or your configured port). You can access the GraphQL IDE in your browser to explore the available queries and data.
 
 ## Configuration
 The `indexer.config.ts` file is where you define what data you want to index.
@@ -105,7 +105,7 @@ The `indexer.config.ts` file is where you define what data you want to index.
     - `fields`: (Only for `value.kind: 'struct'`) Defines the fields within the custom struct.
 
 ## GraphQL API
-The generated GraphQL schema (schema.graphql) provides queries to fetch your indexed data. You can explore it using the GraphiQL IDE at http://localhost:4000/graphql.
+The generated GraphQL schema (schema.graphql) provides queries to fetch your indexed data. You can explore it using the GraphQL IDE at http://localhost:4000/graphql.
 
 Example Queries:
 
@@ -120,30 +120,6 @@ query GetRecentTransactions {
   }
 }
 
-query GetTokenRegistrations {
-  tokenRegistrations(limit: 5) {
-    id
-    transactionId
-    tokenId
-    tokenSymbol
-    decimals
-    supplyPublic
-    callerAddress
-  }
-}
-
-query GetTokenMetadata(token_id: "YOUR_TOKEN_ID_FIELD_VALUE") {
-  tokenDatum(key: $token_id) {
-    key
-    value {
-      symbol
-      decimals
-      totalSupply
-      owner
-    }
-    lastUpdatedBlock
-  }
-}
 ```
 
 ## Contributing

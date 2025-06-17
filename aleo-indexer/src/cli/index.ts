@@ -14,12 +14,12 @@ const program = new Command();
 
 program
   .name('aleo-indexer')
-  .description('CLI for managing your Aleo Indexer project')
+  .description('CLI for managing Aleo Indexer project')
   .version('0.1.0');
 
 program
   .command('dev')
-  .description('Starts the development server with hot-reloading')
+  .description('Starts the development server')
   .action(async () => {
     logger.info(`Starting Aleo Indexer in development mode... Executing from: ${__filename}`);
 
@@ -55,8 +55,8 @@ program
     await new Promise<void>((resolve, reject) => {
         const drizzleMigrate = spawn('bun', ['x', 'drizzle-kit', 'migrate'], {
             stdio: 'inherit',
-            cwd: process.cwd(), // Execute in the user's project directory
-            env: { ...process.env, DRISSEL_DRIVER: 'pg' }, // Ensure drizzle-kit picks up the PG driver
+            cwd: process.cwd(),
+            env: { ...process.env, DRISSEL_DRIVER: 'pg' },
         });
         drizzleMigrate.on('close', (code) => {
             if (code === 0) {

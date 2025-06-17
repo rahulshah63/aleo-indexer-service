@@ -7,7 +7,6 @@
 - **CLI-Driven Workflow**: A dedicated CLI (`aleo-indexer dev`, `aleo-indexer start`, `aleo-indexer generate`, `aleo-indexer migrate`) for a familiar and efficient development experience.
 - **Drizzle ORM Integration**: Uses Drizzle ORM for type-safe and modern database interactions with PostgreSQL, including `drizzle-kit` for schema migrations.
 - **GraphQL API**: Automatically generates a GraphQL schema and provides a GraphQL API to query your indexed data, powered by `graphql-yoga` and `Hono`.
-- **Hot-Reloading (Development)**: Rapid development cycles with automatic hot-reloading of your configuration and indexing logic (in `dev` mode).
 - **Structured Logging**: Integrates `pino` for robust, structured, and customizable logging.
 - **ESM First**: Built as a native ES Module project for modern JavaScript development.
 - **Config-Driven Indexing**: Define your indexing logic (which programs, functions, and mappings to index) through a simple `indexer.config.ts` file.
@@ -66,39 +65,68 @@ After installing `aleo-indexer` in your project:
 
 ```ts
 // indexer.config.ts
-import { IndexerConfig } from 'aleo-indexer/dist/utils/types'; // Adjust import path if needed
-
 const indexerConfig: IndexerConfig = {
-  rpcUrl: process.env.ALEO_RPC_URL || 'http://localhost:3030',
+  rpcUrl: process.env.ALEO_RPC_URL || "https://testnetbeta.aleorpc.com",
+
+  // Define the Aleo programs and their associated functions/mappings to index.
   programs: [
     {
-      programId: 'token_registry.aleo',
+      programId: "amm_reserve_state_v002.aleo",
       functions: [
         {
-          name: 'register_token',
-          tableName: 'token_registrations',
+          name: "add_reserve",
+          tableName: "market_reserves_historicals",
           inputs: [
-            { name: 'token_id', aleoType: { kind: 'primitive', type: 'field' } },
-            // ... more inputs
+            {
+              name: "token_id_cipher",
+              aleoType: { kind: "primitive", type: "field" },
+              rpcPath: "transaction.execution.transitions[0].inputs[0].value",
+            },
+            ...
           ],
-          extract: {
-            callerAddress: 'transaction.execution.transitions[0].tpk',
-          },
+          outputs: [
+            {
+              name: "user_address",
+              aleoType: { kind: "primitive", type: "address" },
+              parsedPath: "arguments[0]",
+              rpcPath: "transaction.execution.transitions[0].outputs[0].value",
+            },
+            ...
+          ],
+          triggersMappingUpdates: [
+            {
+              programId: "amm_reserve_state_v002.aleo",
+              mappingName: "reserve_data",
+              keySource: "token_id",
+              aleoType: { kind: "primitive", type: "field" },
+            },
+          ],
         },
       ],
       mappings: [
         {
-          name: 'token_data',
-          tableName: 'token_data_map',
-          key: { aleoType: { kind: 'primitive', type: 'field' } },
+          name: "reserve_data",
+          tableName: "reserve_data", // Corresponding SQL table name for this mapping's state
+          key: {
+            name: "token_id", // Name of the key field
+            aleoType: { kind: "primitive", type: "field" }, // Aleo type of the key
+            rpcPath: "key_id",
+          },
           value: {
-            kind: 'struct',
-            structName: 'TokenMetadata',
+            // Define the value structure of the mapping
+            kind: "struct", // Indicates a custom struct type
+            structName: "ReserveData", // The name of the struct (will be used for GraphQL type generation)
             fields: {
-              // ... field definitions
+              last_update_block_height: { kind: "primitive", type: "u32" },
+              liquidity_rate: { kind: "primitive", type: "u128" },
+              borrow_rate: { kind: "primitive", type: "u128" },
+              liquidity_cumulative_index: { kind: "primitive", type: "u128" },
+              borrow_cumulative_index: { kind: "primitive", type: "u128" },
             },
           },
+          rpcValuePath: "value_id",
         },
+        ...
       ],
     },
   ],

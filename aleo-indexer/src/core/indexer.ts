@@ -3,17 +3,17 @@
 import { ProgramConfig, IndexerConfig, DbInstance, GeneratedSchema } from '../utils/types.js';
 import { logger } from '../utils/logger.js';
 import { handleProgramFunctions, handleProgramMappings } from './processor.js';
-import pLimit from 'p-limit'; // For concurrency control
+import pLimit from 'p-limit';
 import { eq, and } from 'drizzle-orm';
 import 'dotenv/config';
 
 /**
- * Retrieves the last indexed block/page for a given program and function from the database.
+ * Retrieves the last indexed block/page(total_txn) for a given program and function from the database.
  * @param db The Drizzle DB instance.
  * @param schema The dynamically loaded Drizzle schema, specifically `indexerState` table.
  * @param programName The full program ID (e.g., "token_registry.aleo").
  * @param functionName The name of the function within the program (e.g., "main").
- * @returns The last indexed block/page, or 0 if not found.
+ * @returns The last indexed block/page(total_txn), or 0 if not found.
  */
 async function getLastIndexedBlock(db: DbInstance, schema: GeneratedSchema, programName: string, functionName: string): Promise<number> {
   const result = await db
@@ -30,12 +30,12 @@ async function getLastIndexedBlock(db: DbInstance, schema: GeneratedSchema, prog
 }
 
 /**
- * Updates the last indexed block/page for a given program and function in the database.
+ * Updates the last indexed block/page(total_txn) for a given program and function in the database.
  * @param db The Drizzle DB instance.
  * @param schema The dynamically loaded Drizzle schema, specifically `indexerState` table.
  * @param programName The full program ID.
  * @param functionName The name of the function within the program.
- * @param blockHeight The new last indexed block/page.
+ * @param blockHeight The new last indexed block/page(total_txn).
  */
 async function updateLastIndexedBlock(db: DbInstance, schema: GeneratedSchema, programName: string, functionName: string, blockHeight: number) {
   await db
@@ -68,7 +68,7 @@ async function processProgram(
     return;
   }
 
-  // 1. Build the initial progress map. The value from the DB is the total transactions indexed so far.
+  // Build the initial progress map
   const functionProgress: { [functionName: string]: number } = {};
   for (const funcConfig of programConfig.functions) {
     functionProgress[funcConfig.name] = await getLastIndexedBlock(db, schema, programConfig.programId, funcConfig.name);
@@ -109,11 +109,11 @@ async function processProgram(
 /**
  * Starts the main indexing loop.
  * @param config The overall IndexerConfig.
- * @param db The Drizzle DB instance (from the example project).
- * @param schema The dynamically loaded Drizzle schema (from the example project).
+ * @param db The Drizzle DB instance (from the cwd/example project).
+ * @param schema The dynamically loaded Drizzle schema (from the cwd/example project).
  */
 export async function startIndexer(config: IndexerConfig, db: DbInstance, schema: GeneratedSchema) {
-  // Validate environment variables (RPC_URL is now from config, DATABASE_URL is essential for DB instance)
+  // Validate environment variables
   if (!process.env.DATABASE_URL) {
     throw new Error(`Missing required environment variable: DATABASE_URL`);
   }
@@ -128,7 +128,6 @@ export async function startIndexer(config: IndexerConfig, db: DbInstance, schema
     logger.info({ service: 'indexer', msg: 'Running indexing cycle...' });
     const tasks = config.programs.map((program) =>
       limit(() =>
-        // Pass all of `config.programs` to `processProgram`
         processProgram(program, config.programs, config.rpcUrl, db, schema).catch((e) =>
           logger.error({
             service: 'indexer',
