@@ -297,7 +297,7 @@ type Query {
         offset: Int = 0,
         programId: String,
         functionName: String,
-        where: TransactionWhereInput, # <-- Added where argument
+        where: TransactionWhereInput,
         orderBy: TransactionOrderBy = blockHeight,
         orderDirection: OrderDirection = desc
     ): [Transaction!]
@@ -357,9 +357,9 @@ type Query {
                 schemaContent += `    ${func.tableName}(\n`;
                 schemaContent += `        limit: Int = 10,\n`;
                 schemaContent += `        offset: Int = 0,\n`;
-                schemaContent += `        where: ${functionWhereInputName}, # <-- Added where argument\n`;
-                schemaContent += `        orderBy: ${typeName}OrderBy = id,\n`;
-                schemaContent += `        orderDirection: OrderDirection = desc\n`;
+                schemaContent += `        where: ${functionWhereInputName},\n`;
+                // schemaContent += `        orderBy: ${typeName}OrderBy = id,\n`;
+                // schemaContent += `        orderDirection: OrderDirection = desc\n`;
                 schemaContent += `    ): [${typeName}!]\n`;
 
                 const singular = func.tableName.endsWith('s') ? func.tableName.slice(0, -1) : func.tableName;
@@ -380,7 +380,7 @@ type Query {
 
                 // Create OrderBy enum once
                 if (!generatedOrderEnums.has(orderEnumName)) {
-                    enumDefs += `enum ${orderEnumName} {\n  lastUpdatedBlock\n  key\n}\n\n`; // Add 'key' to orderBy
+                    enumDefs += `enum ${orderEnumName} {\n  lastUpdatedBlock\n  key\n}\n\n`;
                     generatedOrderEnums.add(orderEnumName);
                 }
 
@@ -397,7 +397,7 @@ type Query {
                 schemaContent += `    ${plural}(\n`;
                 schemaContent += `        limit: Int = 10,\n`;
                 schemaContent += `        offset: Int = 0,\n`;
-                schemaContent += `        where: ${mappingWhereInputName}, # <-- Added where argument\n`;
+                schemaContent += `        where: ${mappingWhereInputName},\n`;
                 schemaContent += `        orderBy: ${orderEnumName} = lastUpdatedBlock,\n`;
                 schemaContent += `        orderDirection: OrderDirection = desc\n`;
                 schemaContent += `    ): [${typeName}!]\n`;

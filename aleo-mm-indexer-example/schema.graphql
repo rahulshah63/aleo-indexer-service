@@ -65,7 +65,7 @@ type Query {
         offset: Int = 0,
         programId: String,
         functionName: String,
-        where: TransactionWhereInput, # <-- Added where argument
+        where: TransactionWhereInput,
         orderBy: TransactionOrderBy = blockHeight,
         orderDirection: OrderDirection = desc
     ): [Transaction!]
@@ -73,99 +73,94 @@ type Query {
     market_reserves_historicals(
         limit: Int = 10,
         offset: Int = 0,
-        where: Market_reserves_historicalsWhereInput, # <-- Added where argument
-        orderDirection: OrderDirection = desc
+        where: Market_reserves_historicalsWhereInput,
     ): [Market_reserves_historicals!]
     market_reserves_historical(id: Int!): Market_reserves_historicals
     reserve_data(
         limit: Int = 10,
         offset: Int = 0,
-        where: Reserve_dataWhereInput, # <-- Added where argument
+        where: Reserve_dataWhereInput,
         orderBy: Reserve_dataOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Reserve_data!]
     reserve_config(
         limit: Int = 10,
         offset: Int = 0,
-        where: Reserve_configWhereInput, # <-- Added where argument
+        where: Reserve_configWhereInput,
         orderBy: Reserve_configOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Reserve_config!]
     total_deposited_amount(
         limit: Int = 10,
         offset: Int = 0,
-        where: Total_deposited_amountWhereInput, # <-- Added where argument
+        where: Total_deposited_amountWhereInput,
         orderBy: Total_deposited_amountOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Total_deposited_amount!]
     total_borrowed_amount(
         limit: Int = 10,
         offset: Int = 0,
-        where: Total_borrowed_amountWhereInput, # <-- Added where argument
+        where: Total_borrowed_amountWhereInput,
         orderBy: Total_borrowed_amountOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Total_borrowed_amount!]
     total_available_liquidity(
         limit: Int = 10,
         offset: Int = 0,
-        where: Total_available_liquidityWhereInput, # <-- Added where argument
+        where: Total_available_liquidityWhereInput,
         orderBy: Total_available_liquidityOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Total_available_liquidity!]
     deposited_amount(
         limit: Int = 10,
         offset: Int = 0,
-        where: Deposited_amountWhereInput, # <-- Added where argument
+        where: Deposited_amountWhereInput,
         orderBy: Deposited_amountOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Deposited_amount!]
     borrowed_amount(
         limit: Int = 10,
         offset: Int = 0,
-        where: Borrowed_amountWhereInput, # <-- Added where argument
+        where: Borrowed_amountWhereInput,
         orderBy: Borrowed_amountOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Borrowed_amount!]
     user_cumulative_index(
         limit: Int = 10,
         offset: Int = 0,
-        where: User_cumulative_indexWhereInput, # <-- Added where argument
+        where: User_cumulative_indexWhereInput,
         orderBy: User_cumulative_indexOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [User_cumulative_index!]
     usersdata(
         limit: Int = 10,
         offset: Int = 0,
-        where: UsersdataWhereInput, # <-- Added where argument
+        where: UsersdataWhereInput,
         orderBy: UsersdataOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [Usersdata!]
     deposits_historicals(
         limit: Int = 10,
         offset: Int = 0,
-        where: Deposits_historicalsWhereInput, # <-- Added where argument
-        orderDirection: OrderDirection = desc
+        where: Deposits_historicalsWhereInput,
     ): [Deposits_historicals!]
     deposits_historical(id: Int!): Deposits_historicals
     borrows_historicals(
         limit: Int = 10,
         offset: Int = 0,
-        where: Borrows_historicalsWhereInput, # <-- Added where argument
-        orderDirection: OrderDirection = desc
+        where: Borrows_historicalsWhereInput,
     ): [Borrows_historicals!]
     borrows_historical(id: Int!): Borrows_historicals
     withdraws_historicals(
         limit: Int = 10,
         offset: Int = 0,
-        where: Withdraws_historicalsWhereInput, # <-- Added where argument
-        orderDirection: OrderDirection = desc
+        where: Withdraws_historicalsWhereInput,
     ): [Withdraws_historicals!]
     withdraws_historical(id: Int!): Withdraws_historicals
     repays_historicals(
         limit: Int = 10,
         offset: Int = 0,
-        where: Repays_historicalsWhereInput, # <-- Added where argument
-        orderDirection: OrderDirection = desc
+        where: Repays_historicalsWhereInput,
     ): [Repays_historicals!]
     repays_historical(id: Int!): Repays_historicals
 }
