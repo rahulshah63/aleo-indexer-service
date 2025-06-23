@@ -123,7 +123,7 @@ CREATE TABLE "user_cumulative_index" (
 	"last_updated_block" integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "usersdata" (
+CREATE TABLE "users_data" (
 	"key" varchar(255) PRIMARY KEY NOT NULL,
 	"value" jsonb NOT NULL,
 	"last_updated_block" integer NOT NULL

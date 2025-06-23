@@ -132,13 +132,13 @@ type Query {
         orderBy: User_cumulative_indexOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
     ): [User_cumulative_index!]
-    usersdata(
+    users_data(
         limit: Int = 10,
         offset: Int = 0,
-        where: UsersdataWhereInput,
-        orderBy: UsersdataOrderBy = lastUpdatedBlock,
+        where: Users_dataWhereInput,
+        orderBy: Users_dataOrderBy = lastUpdatedBlock,
         orderDirection: OrderDirection = desc
-    ): [Usersdata!]
+    ): [Users_data!]
     deposits_historicals(
         limit: Int = 10,
         offset: Int = 0,
@@ -235,7 +235,7 @@ enum User_cumulative_indexOrderBy {
   key
 }
 
-enum UsersdataOrderBy {
+enum Users_dataOrderBy {
   lastUpdatedBlock
   key
 }
@@ -320,7 +320,7 @@ input User_cumulative_indexWhereInput {
   lastUpdatedBlock: IntFilter
 }
 
-input UsersdataWhereInput {
+input Users_dataWhereInput {
   key: StringFilter
   lastUpdatedBlock: IntFilter
 }
@@ -510,7 +510,7 @@ type User_cumulative_index {
   lastUpdatedBlock: Int!
 }
 
-type Usersdata {
+type Users_data {
   key: String!
   value: UserData!
   lastUpdatedBlock: Int!

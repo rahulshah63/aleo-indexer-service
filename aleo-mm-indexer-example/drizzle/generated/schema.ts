@@ -121,7 +121,7 @@ export const user_cumulative_index = pgTable("user_cumulative_index", {
   lastUpdatedBlock: integer("last_updated_block").notNull(),
 });
 
-export const usersdata = pgTable("usersdata", {
+export const users_data = pgTable("users_data", {
   key: varchar("key", { length: 255 }).primaryKey(),
   value: jsonb("value").notNull(),
   lastUpdatedBlock: integer("last_updated_block").notNull(),

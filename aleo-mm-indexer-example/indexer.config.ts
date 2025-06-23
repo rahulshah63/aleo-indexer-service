@@ -182,6 +182,12 @@ const indexerConfig: IndexerConfig = {
               keySource: "token_id",
               aleoType: { kind: "primitive", type: "field" },
             },
+            {
+              programId: "amm_reserve_state_v002.aleo",
+              mappingName: "reserve_config",
+              keySource: "token_id",
+              aleoType: { kind: "primitive", type: "field" },
+            },
           ],
         },
       ],
@@ -325,7 +331,7 @@ const indexerConfig: IndexerConfig = {
       mappings: [
         {
           name: "usersdata",
-          tableName: "usersdata", // Corresponding SQL table name for this mapping's state
+          tableName: "users_data", // Corresponding SQL table name for this mapping's state
           key: {
             name: "user_key", // Name of the key field
             aleoType: { kind: "primitive", type: "field" }, // Aleo type of the key
