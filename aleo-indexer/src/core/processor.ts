@@ -609,7 +609,6 @@ export async function handleProgramMappings(
 
       if (rpcValue !== undefined && rpcValue !== null) {
         const key = parseAleoValue(keyString, mappingConfig.key.aleoType);
-        const value = parseAleoValue(rpcValue, mappingConfig.value);
         const parsedJsonValue = parseJSONLikeString(rpcValue);
         //for all value, convert to js type
         const dataToInsert = parseLeoTypedJSON(parsedJsonValue);
@@ -624,7 +623,7 @@ export async function handleProgramMappings(
           .onConflictDoUpdate({
             target: targetTable.key,
             set: {
-              value: value,
+              value: dataToInsert,
               lastUpdatedBlock: blockHeight,
             },
           });

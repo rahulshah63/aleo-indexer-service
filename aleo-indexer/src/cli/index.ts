@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { resolve } from 'path';
 import { spawn } from 'child_process';
 import 'dotenv/config';
+import 'json-bigint-patch';
 
 import { startIndexer } from '../core/indexer.js';
 import { generateSchemas } from './generate.js';
