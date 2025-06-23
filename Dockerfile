@@ -19,4 +19,4 @@ RUN bun run db:generate-migration
 RUN bun run db:migrate
 
 CMD ["bun", "run", "start"]
-EXPOSE 3000
+EXPOSE 4000
