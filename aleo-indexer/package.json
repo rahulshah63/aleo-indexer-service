@@ -1,6 +1,6 @@
 {
   "name": "aleo-indexer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A robust and extensible Aleo blockchain indexer CLI and framework inspired by Ponder.sh.",
   "type": "module",
   "main": "dist/index.js",
