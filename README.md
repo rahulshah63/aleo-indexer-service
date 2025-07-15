@@ -1,6 +1,6 @@
-# Aleo Indexer Monorepo
+# Aleo Indexer Service
 
-Welcome to the Aleo Indexer Monorepo! This repository houses two key components for interacting with the Aleo blockchain:
+Welcome to the Aleo Indexer Service! This repository houses two key components for interacting with the Aleo blockchain:
 
 1.  **Aleo Indexer**: A robust and extensible Aleo blockchain indexer CLI and framework.
 2.  **Aleo Money Market Indexer Example**: An example project demonstrating the usage of the Aleo Indexer CLI and framework with a money market scenario.
@@ -24,21 +24,31 @@ To explore the example, understand its setup, and see the `aleo-indexer` in acti
 
 ---
 
-## Getting Started (Monorepo Level)
+## Getting Started
 
-To set up the entire monorepo:
+To set up the indexer service:
 
 1.  **Clone the repository**:
     ```bash
     git clone https://github.com/rahulshah63/aleo-indexer-service.git
-    cd Aleo-indexer # Assuming this is your monorepo root name
+    cd aleo-indexer-service 
     ```
 2.  **Install dependencies**:
     ```bash
-    yarn install
+    bun install
     ```
     This will install dependencies for both `aleo-indexer` and `aleo-mm-indexer-example` due to the `workspaces` configuration in the root `package.json`.
-
+3. **Run Indexer**:
+    ```bash
+    cd aleo-indexer-service/aleo-indexer
+    bun run build
+    bun link
+    cd ../aleo-mm-indexer-example
+    bun link aleo-indexer
+    chmod +x $HOME/.bun/bin/aleo-indexer
+    bun run dev
+    ```
+    See individual package README.md for more specific guidelines.
 ---
 
 ## Contributing
