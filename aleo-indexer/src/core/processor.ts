@@ -495,7 +495,7 @@ export async function handleProgramFunctions(
       const targetTable = schema[tableName]; // Access the table dynamically from the schema object
       if (targetTable) {
         try {
-          await db.insert(targetTable).values(records).onConflictDoNothing();
+          await db.insert(targetTable).values(records).onConflictDoNothing({ target: targetTable.transaction_id });
           logger.info({
             service: "processor",
             msg: `Inserted ${records.length} records into '${tableName}' for ${programConfig.programId}.`,
