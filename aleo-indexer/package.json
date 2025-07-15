@@ -26,6 +26,15 @@
   ],
   "author": "Rahul Shah",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rahulshah63/Aleo-indexer",
+    "directory": "aleo-indexer"
+  },
+  "bugs": {
+    "url": "https://github.com/rahulshah63/Aleo-indexer/issues"
+  },
+  "homepage": "https://github.com/rahulshah63/Aleo-indexer/blob/main/aleo-indexer/README.md",
   "dependencies": {
     "async-retry": "^1.3.3",
     "commander": "14.0.0",

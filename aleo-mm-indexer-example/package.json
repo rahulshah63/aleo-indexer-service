@@ -19,6 +19,15 @@
   ],
   "author": "Rahul Shah",
   "license": "MIT",
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/rahulshah63/Aleo-indexer",
+    "directory": "aleo-mm-indexer-example"
+  },
+  "bugs": {
+    "url": "https://github.com/rahulshah63/Aleo-indexer/issues"
+  },
+  "homepage": "https://github.com/rahulshah63/Aleo-indexer/blob/main/aleo-mm-indexer-example/README.md",
   "dependencies": {
     "dotenv": "^16.5.0",
     "drizzle-orm": "0.44.2",
