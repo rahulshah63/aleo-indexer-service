@@ -1,8 +1,8 @@
 {
-  "name": "aleo-indexer-monorepo",
+  "name": "aleo-indexer",
   "version": "1.0.0",
   "private": false,
-  "description": "Monorepo for Aleo Indexer and examples.",
+  "description": "Package for Aleo Indexer and examples.",
   "workspaces": [
     "aleo-indexer",
     "aleo-mm-indexer-example"
