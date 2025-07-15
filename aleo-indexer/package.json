@@ -1,6 +1,6 @@
 {
   "name": "aleo-indexer",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A robust and extensible Aleo blockchain indexer CLI and framework inspired by Ponder.sh.",
   "type": "module",
   "main": "dist/index.js",
@@ -28,13 +28,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rahulshah63/Aleo-indexer",
+    "url": "https://github.com/rahulshah63/aleo-indexer-service",
     "directory": "aleo-indexer"
   },
   "bugs": {
-    "url": "https://github.com/rahulshah63/Aleo-indexer/issues"
+    "url": "https://github.com/rahulshah63/aleo-indexer-service/issues"
   },
-  "homepage": "https://github.com/rahulshah63/Aleo-indexer/blob/main/aleo-indexer/README.md",
+  "homepage": "https://github.com/rahulshah63/aleo-indexer-service/blob/main/aleo-indexer/README.md",
   "dependencies": {
     "async-retry": "^1.3.3",
     "commander": "14.0.0",

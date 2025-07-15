@@ -1,11 +1,17 @@
 {
-  "name": "aleo-indexer",
+  "name": "aleo-indexer-service",
   "version": "1.0.0",
   "private": false,
   "description": "Package for Aleo Indexer and examples.",
+  "author": "Rahul Shah",
+  "keywords": [
+    "aleo",
+    "indexer",
+    "blockchain"
+  ],
   "workspaces": [
     "aleo-indexer",
     "aleo-mm-indexer-example"
   ],
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "bun@1.2.15"
 }

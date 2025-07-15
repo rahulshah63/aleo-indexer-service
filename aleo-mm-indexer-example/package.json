@@ -1,9 +1,10 @@
 {
   "name": "aleo-mm-indexer-example",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Aleo Money Market example project using the Aleo Indexer CLI and framework.",
   "type": "module",
   "main": "drizzle/index.ts",
+  "private": false,
   "scripts": {
     "dev": "aleo-indexer dev",
     "start": "aleo-indexer start",
@@ -21,15 +22,15 @@
   "license": "MIT",
     "repository": {
     "type": "git",
-    "url": "https://github.com/rahulshah63/Aleo-indexer",
+    "url": "https://github.com/rahulshah63/aleo-indexer-service",
     "directory": "aleo-mm-indexer-example"
   },
   "bugs": {
-    "url": "https://github.com/rahulshah63/Aleo-indexer/issues"
+    "url": "https://github.com/rahulshah63/aleo-indexer-service/issues"
   },
-  "homepage": "https://github.com/rahulshah63/Aleo-indexer/blob/main/aleo-mm-indexer-example/README.md",
+  "homepage": "https://github.com/rahulshah63/aleo-indexer-service/blob/main/aleo-mm-indexer-example/README.md",
   "dependencies": {
-    "dotenv": "^16.5.0",
+    "dotenv": "17.2.0",
     "drizzle-orm": "0.44.2",
     "pg": "^8.11.5"
   },
